@@ -7,7 +7,14 @@
   "types": "dist/Promise.d.ts",
   "main": "dist/Promise.js",
   "module": "dist-esm/Promise.js",
-  "keywords": [],
+  "keywords": [
+    "promise",
+    "A+",
+    "LazyPromise",
+    "lazy promise",
+    "synchronous",
+    "asynchronous"
+  ],
   "scripts": {
     "build:dist": "rimraf dist/* && copyfiles -u 1 src/**/*.d.ts dist && tsc",
     "build:dist-esm": "rimraf dist-esm/* && tsc -p tsconfig.esm.json",

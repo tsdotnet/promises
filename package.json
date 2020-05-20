@@ -67,7 +67,7 @@
     "@tsdotnet/disposable": "^1.1.16",
     "@tsdotnet/exceptions": "^1.0.15",
     "@tsdotnet/object-pool": "^1.0.3",
-    "@tsdotnet/threading": "^1.0.6",
+    "@tsdotnet/threading": "^1.0.7",
     "tslib": "^2.0.0"
   }
 }

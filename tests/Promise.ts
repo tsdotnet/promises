@@ -1,6 +1,6 @@
 import * as AU from '@tsdotnet/array-utility';
-import Stopwatch from '@tsdotnet/date-time/dist/Stopwatch';
 import {ObjectDisposedException} from '@tsdotnet/disposable';
+import Stopwatch from '@tsdotnet/stopwatch';
 import {defer} from '@tsdotnet/threading';
 import {assert} from 'chai';
 import LazyPromise from '../src/LazyPromise';

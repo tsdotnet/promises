@@ -68,6 +68,7 @@
     "@tsdotnet/exceptions": "^1.0.15",
     "@tsdotnet/object-pool": "^1.0.3",
     "@tsdotnet/threading": "^1.0.8",
+    "@tsdotnet/type": "^1.0.7",
     "tslib": "^2.0.0"
   }
 }

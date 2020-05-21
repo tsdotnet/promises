@@ -12,7 +12,7 @@
 
 
 import {Closure, Selector} from '@tsdotnet/common-interfaces';
-import type from '@tsdotnet/compare/dist/type';
+import type from '@tsdotnet/type';
 import {DisposableBase} from '@tsdotnet/disposable';
 import ObjectDisposedException from '@tsdotnet/disposable/dist/ObjectDisposedException';
 import ArgumentException from '@tsdotnet/exceptions/dist/ArgumentException';

@@ -13,7 +13,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Promise = exports.PromiseCollection = exports.ArrayPromise = exports.TSDNPromise = exports.Rejected = exports.Fulfilled = exports.Resolved = exports.Resolvable = exports.PromiseBase = exports.PromiseState = void 0;
 const tslib_1 = require("tslib");
-const type_1 = tslib_1.__importDefault(require("@tsdotnet/compare/dist/type"));
+const type_1 = tslib_1.__importDefault(require("@tsdotnet/type"));
 const disposable_1 = require("@tsdotnet/disposable");
 const ObjectDisposedException_1 = tslib_1.__importDefault(require("@tsdotnet/disposable/dist/ObjectDisposedException"));
 const ArgumentException_1 = tslib_1.__importDefault(require("@tsdotnet/exceptions/dist/ArgumentException"));

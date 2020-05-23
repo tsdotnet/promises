@@ -12,7 +12,6 @@
 
 
 import {Closure, Selector} from '@tsdotnet/common-interfaces';
-import type from '@tsdotnet/type';
 import {DisposableBase} from '@tsdotnet/disposable';
 import ObjectDisposedException from '@tsdotnet/disposable/dist/ObjectDisposedException';
 import ArgumentException from '@tsdotnet/exceptions/dist/ArgumentException';
@@ -21,6 +20,7 @@ import InvalidOperationException from '@tsdotnet/exceptions/dist/InvalidOperatio
 import ObjectPool from '@tsdotnet/object-pool';
 import defer from '@tsdotnet/threading/dist/defer';
 import deferImmediate from '@tsdotnet/threading/dist/deferImmediate';
+import type from '@tsdotnet/type';
 
 const
 	VOID0: any            = void 0,
@@ -29,7 +29,7 @@ const
 	PROMISE_STATE         = PROMISE + 'State',
 	THEN = 'then', TARGET = 'target';
 
-function isPromise<T> (value: any): value is PromiseLike<T>
+function isPromise<T> (value: unknown): value is PromiseLike<T>
 {
 	return type.hasMemberOfType(value, THEN, type.Value.Function);
 }
@@ -206,7 +206,6 @@ export abstract class PromiseBase<T>
 	protected constructor ()
 	{
 		super(TSDNPromise.State.Pending);
-		// @ts-ignore
 		this._disposableObjectName = PROMISE;
 	}
 
@@ -462,7 +461,7 @@ export abstract class Resolvable<T>
 export abstract class Resolved<T>
 	extends Resolvable<T>
 {
-	protected constructor (state: TSDNPromise.State, result: T, error?: any)
+	protected constructor (state: TSDNPromise.State, result: T, error?: unknown)
 	{
 		super();
 		this._result = result;
@@ -491,7 +490,7 @@ export class Fulfilled<T>
 export class Rejected<T>
 	extends Resolved<T>
 {
-	constructor (error: any)
+	constructor (error: unknown)
 	{
 		super(TSDNPromise.State.Rejected, VOID0, error);
 	}
@@ -704,7 +703,7 @@ export class TSDNPromise<T>
 		this._resolveInternal(result);
 	}
 
-	reject (error: any, throwIfSettled: boolean = false): void
+	reject (error: unknown, throwIfSettled: boolean = false): void
 	{
 		this.throwIfDisposed();
 		if(this._state)
@@ -855,10 +854,22 @@ export class ArrayPromise<T>
 		}, true);
 	}
 
+	/**
+	 * Simplifies the use of a reduce function on an array of results when the source is assured to be an array.
+	 * @param {(previousValue: T, currentValue: T, i?: number, array?: T[]) => T} reduction
+	 * @param {T} initialValue
+	 * @return {PromiseBase<T>}
+	 */
 	reduce (
 		reduction: (previousValue: T, currentValue: T, i?: number, array?: T[]) => T,
 		initialValue?: T): PromiseBase<T>
 
+	/**
+	 * Simplifies the use of a reduce function on an array of results when the source is assured to be an array.
+	 * @param {(previousValue: U, currentValue: T, i?: number, array?: T[]) => U} reduction
+	 * @param {U} initialValue
+	 * @return {PromiseBase<U>}
+	 */
 	reduce<U> (
 		reduction: (previousValue: U, currentValue: T, i?: number, array?: T[]) => U,
 		initialValue: U): PromiseBase<U>
@@ -957,7 +968,6 @@ export class PromiseCollection<T>
 	 * @param transform
 	 * @returns {PromiseCollection<U>}
 	 */
-
 	pipe<U> (transform: (value: T) => U | PromiseLike<U>): PromiseCollection<U>
 	{
 		this.throwIfDisposed();
@@ -966,10 +976,24 @@ export class PromiseCollection<T>
 		);
 	}
 
+	/**
+	 * Behaves like array reduce.
+	 * Creates the promise chain necessary to produce the desired result.
+	 * @param {(previousValue: T, currentValue: T, i?: number, array?: PromiseLike<T>[]) => T} reduction
+	 * @param {PromiseLike<T> | T} initialValue
+	 * @return {PromiseBase<T>}
+	 */
 	reduce (
 		reduction: (previousValue: T, currentValue: T, i?: number, array?: PromiseLike<T>[]) => T,
 		initialValue?: T | PromiseLike<T>): PromiseBase<T>
 
+	/**
+	 * Behaves like array reduce.
+	 * Creates the promise chain necessary to produce the desired result.
+	 * @param {(previousValue: U, currentValue: T, i?: number, array?: PromiseLike<T>[]) => U} reduction
+	 * @param {PromiseLike<U> | U} initialValue
+	 * @return {PromiseBase<U>}
+	 */
 	reduce<U> (
 		reduction: (previousValue: U, currentValue: T, i?: number, array?: PromiseLike<T>[]) => U,
 		initialValue: U | PromiseLike<U>): PromiseBase<U>
@@ -986,20 +1010,19 @@ export class PromiseCollection<T>
 		initialValue?: U | PromiseLike<U>): PromiseBase<U>
 	{
 		this.throwIfDisposed();
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		// @ts-ignore
-		return TSDNPromise.wrap<U>(this._source
-			// @ts-ignore
-			.reduce((
-				previous: PromiseLike<U>,
-				current: PromiseLike<T>,
-				i: number,
-				array: PromiseLike<T>[]) =>
-					handleSyncIfPossible(previous,
-						(p: U) => handleSyncIfPossible(current, (c: T) => reduction(p, c, i, array))),
+		return TSDNPromise.wrap<U>(this._source.reduce((
+			previous: PromiseLike<U>,
+			current: PromiseLike<T>,
+			i: number,
+			array: PromiseLike<T>[]) =>
+				handleSyncIfPossible(previous,
+					(p: U) => handleSyncIfPossible(current, (c: T) => reduction(p, c, i, array))),
 
-				isPromise(initialValue)
-					? initialValue
-					: new Fulfilled(initialValue as any)
+			isPromise(initialValue)
+				? initialValue
+				: new Fulfilled(initialValue as any)
 			)
 		);
 	}
@@ -1060,7 +1083,7 @@ namespace pools
 		let pool: ObjectPool<PromiseCallbacks<any>>;
 
 		//noinspection JSUnusedLocalSymbols
-		function getPool ()
+		function getPool (): ObjectPool<PromiseCallbacks<any>>
 		{
 			return pool
 				|| (pool = new ObjectPool<PromiseCallbacks<any>>(factory, c => {
@@ -1162,12 +1185,27 @@ export namespace TSDNPromise
 
 	/**
 	 * Takes a set of promises and returns a PromiseCollection.
-	 * @param promises
+	 * @param {PromiseLike<T>[]} promises
+	 * @return {PromiseCollection<T>}
 	 */
 	export function group<T> (promises: PromiseLike<T>[]): PromiseCollection<T>
+
+	/**
+	 * Takes a set of promises and returns a PromiseCollection.
+	 * @param {PromiseLike<T>} promise
+	 * @param {PromiseLike<T>} rest
+	 * @return {PromiseCollection<T>}
+	 */
 	export function group<T> (
 		promise: PromiseLike<T>,
 		...rest: PromiseLike<T>[]): PromiseCollection<T>
+
+	/**
+	 * Takes a set of promises and returns a PromiseCollection.
+	 * @param {PromiseLike<any> | PromiseLike<any>[]} first
+	 * @param {PromiseLike<any>} rest
+	 * @return {PromiseCollection<any>}
+	 */
 	export function group (
 		first: PromiseLike<any> | PromiseLike<any>[],
 		...rest: PromiseLike<any>[]): PromiseCollection<any>
@@ -1182,9 +1220,24 @@ export namespace TSDNPromise
 
 	/**
 	 * Returns a promise that is fulfilled with an array containing the fulfillment value of each promise, or is rejected with the same rejection reason as the first promise to be rejected.
+	 * @param {PromiseLike<T>[]} promises
+	 * @return {ArrayPromise<T>}
 	 */
 	export function all<T> (promises: PromiseLike<T>[]): ArrayPromise<T>
+
+	/**
+	 * Returns a promise that is fulfilled with an array containing the fulfillment value of each promise, or is rejected with the same rejection reason as the first promise to be rejected.
+	 * @param {PromiseLike<T>} promise
+	 * @param {PromiseLike<T>} rest
+	 * @return {ArrayPromise<T>}
+	 */
 	export function all<T> (promise: PromiseLike<T>, ...rest: PromiseLike<T>[]): ArrayPromise<T>
+	/**
+	 * Returns a promise that is fulfilled with an array containing the fulfillment value of each promise, or is rejected with the same rejection reason as the first promise to be rejected.
+	 * @param {PromiseLike<any> | PromiseLike<any>[]} first
+	 * @param {PromiseLike<any>} rest
+	 * @return {ArrayPromise<any>}
+	 */
 	export function all (
 		first: PromiseLike<any> | PromiseLike<any>[],
 		...rest: PromiseLike<any>[]): ArrayPromise<any>
@@ -1251,11 +1304,29 @@ export namespace TSDNPromise
 	/**
 	 * Returns a promise that is fulfilled with array of provided promises when all provided promises have resolved (fulfill or reject).
 	 * Unlike .all this method waits for all rejections as well as fulfillment.
+	 * @param {PromiseLike<T>[]} promises
+	 * @return {ArrayPromise<PromiseLike<T>>}
 	 */
 	export function waitAll<T> (promises: PromiseLike<T>[]): ArrayPromise<PromiseLike<T>>
+
+	/**
+	 * Returns a promise that is fulfilled with array of provided promises when all provided promises have resolved (fulfill or reject).
+	 * Unlike .all this method waits for all rejections as well as fulfillment.
+	 * @param {PromiseLike<T>} promise
+	 * @param {PromiseLike<T>} rest
+	 * @return {ArrayPromise<PromiseLike<T>>}
+	 */
 	export function waitAll<T> (
 		promise: PromiseLike<T>,
 		...rest: PromiseLike<T>[]): ArrayPromise<PromiseLike<T>>
+
+	/**
+	 * Returns a promise that is fulfilled with array of provided promises when all provided promises have resolved (fulfill or reject).
+	 * Unlike .all this method waits for all rejections as well as fulfillment.
+	 * @param {PromiseLike<any> | PromiseLike<any>[]} first
+	 * @param {PromiseLike<any>} rest
+	 * @return {ArrayPromise<PromiseLike<any>>}
+	 */
 	export function waitAll (
 		first: PromiseLike<any> | PromiseLike<any>[],
 		...rest: PromiseLike<any>[]): ArrayPromise<PromiseLike<any>>
@@ -1312,11 +1383,27 @@ export namespace TSDNPromise
 	/**
 	 * Creates a Promise that is resolved or rejected when any of the provided Promises are resolved
 	 * or rejected.
-	 * @param promises An array of Promises.
-	 * @returns A new Promise.
+	 * @param {PromiseLike<T>[]} promises
+	 * @return {PromiseBase<T>}
 	 */
 	export function race<T> (promises: PromiseLike<T>[]): PromiseBase<T>
+
+	/**
+	 * Creates a Promise that is resolved or rejected when any of the provided Promises are resolved
+	 * or rejected.
+	 * @param {PromiseLike<T>} promise
+	 * @param {PromiseLike<T>} rest
+	 * @return {PromiseBase<T>}
+	 */
 	export function race<T> (promise: PromiseLike<T>, ...rest: PromiseLike<T>[]): PromiseBase<T>
+
+	/**
+	 * Creates a Promise that is resolved or rejected when any of the provided Promises are resolved
+	 * or rejected.
+	 * @param {PromiseLike<any> | PromiseLike<any>[]} first
+	 * @param {PromiseLike<any>} rest
+	 * @return {PromiseBase<any>}
+	 */
 	export function race (
 		first: PromiseLike<any> | PromiseLike<any>[],
 		...rest: PromiseLike<any>[]): PromiseBase<any>
@@ -1378,7 +1465,13 @@ export namespace TSDNPromise
 	 * @returns A promise whose internal state matches the provided promise.
 	 */
 	export function resolve<T> (value: T | PromiseLike<T>): PromiseBase<T>;
-	export function resolve (value?: any): PromiseBase<any>
+
+	/**
+	 * Creates a new resolved promise for the provided value.
+	 * @param value A value or promise.
+	 * @returns A promise whose internal state matches the provided promise.
+	 */
+	export function resolve (value?: unknown): PromiseBase<unknown>
 	{
 
 		return isPromise(value) ? wrap(value) : new Fulfilled(value);

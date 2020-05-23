@@ -13,7 +13,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Promise = exports.PromiseCollection = exports.ArrayPromise = exports.TSDNPromise = exports.Rejected = exports.Fulfilled = exports.Resolved = exports.Resolvable = exports.PromiseBase = exports.PromiseState = void 0;
 const tslib_1 = require("tslib");
-const type_1 = tslib_1.__importDefault(require("@tsdotnet/type"));
 const disposable_1 = require("@tsdotnet/disposable");
 const ObjectDisposedException_1 = tslib_1.__importDefault(require("@tsdotnet/disposable/dist/ObjectDisposedException"));
 const ArgumentException_1 = tslib_1.__importDefault(require("@tsdotnet/exceptions/dist/ArgumentException"));
@@ -22,6 +21,7 @@ const InvalidOperationException_1 = tslib_1.__importDefault(require("@tsdotnet/e
 const object_pool_1 = tslib_1.__importDefault(require("@tsdotnet/object-pool"));
 const defer_1 = tslib_1.__importDefault(require("@tsdotnet/threading/dist/defer"));
 const deferImmediate_1 = tslib_1.__importDefault(require("@tsdotnet/threading/dist/deferImmediate"));
+const type_1 = tslib_1.__importDefault(require("@tsdotnet/type"));
 const VOID0 = void 0, NULL = null, PROMISE = 'Promise', PROMISE_STATE = PROMISE + 'State', THEN = 'then', TARGET = 'target';
 function isPromise(value) {
     return type_1.default.hasMemberOfType(value, THEN, "function" /* Function */);
@@ -132,7 +132,6 @@ class PromiseBase extends PromiseState {
     //readonly [Symbol.toStringTag]: "Promise";
     constructor() {
         super(TSDNPromise.State.Pending);
-        // @ts-ignore
         this._disposableObjectName = PROMISE;
     }
     /**
@@ -650,10 +649,9 @@ class PromiseCollection extends disposable_1.DisposableBase {
      */
     reduce(reduction, initialValue) {
         this.throwIfDisposed();
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        return TSDNPromise.wrap(this._source
-            // @ts-ignore
-            .reduce((previous, current, i, array) => handleSyncIfPossible(previous, (p) => handleSyncIfPossible(current, (c) => reduction(p, c, i, array))), isPromise(initialValue)
+        return TSDNPromise.wrap(this._source.reduce((previous, current, i, array) => handleSyncIfPossible(previous, (p) => handleSyncIfPossible(current, (c) => reduction(p, c, i, array))), isPromise(initialValue)
             ? initialValue
             : new Fulfilled(initialValue)));
     }
@@ -753,6 +751,12 @@ var pools;
         return new TSDNPromise(e);
     }
     TSDNPromise.factory = factory;
+    /**
+     * Takes a set of promises and returns a PromiseCollection.
+     * @param {PromiseLike<any> | PromiseLike<any>[]} first
+     * @param {PromiseLike<any>} rest
+     * @return {PromiseCollection<any>}
+     */
     function group(first, ...rest) {
         if (!first && !rest.length)
             throw new ArgumentNullException_1.default('promises');
@@ -760,6 +764,12 @@ var pools;
             .concat(rest));
     }
     TSDNPromise.group = group;
+    /**
+     * Returns a promise that is fulfilled with an array containing the fulfillment value of each promise, or is rejected with the same rejection reason as the first promise to be rejected.
+     * @param {PromiseLike<any> | PromiseLike<any>[]} first
+     * @param {PromiseLike<any>} rest
+     * @return {ArrayPromise<any>}
+     */
     function all(first, ...rest) {
         if (!first && !rest.length)
             throw new ArgumentNullException_1.default('promises');
@@ -813,6 +823,13 @@ var pools;
         });
     }
     TSDNPromise.all = all;
+    /**
+     * Returns a promise that is fulfilled with array of provided promises when all provided promises have resolved (fulfill or reject).
+     * Unlike .all this method waits for all rejections as well as fulfillment.
+     * @param {PromiseLike<any> | PromiseLike<any>[]} first
+     * @param {PromiseLike<any>} rest
+     * @return {ArrayPromise<PromiseLike<any>>}
+     */
     function waitAll(first, ...rest) {
         if (!first && !rest.length)
             throw new ArgumentNullException_1.default('promises');
@@ -853,6 +870,13 @@ var pools;
         });
     }
     TSDNPromise.waitAll = waitAll;
+    /**
+     * Creates a Promise that is resolved or rejected when any of the provided Promises are resolved
+     * or rejected.
+     * @param {PromiseLike<any> | PromiseLike<any>[]} first
+     * @param {PromiseLike<any>} rest
+     * @return {PromiseBase<any>}
+     */
     function race(first, ...rest) {
         let promises = first && ((first) instanceof (Array) ? first : [first]).concat(rest); // yay a copy?
         if (!promises || !promises.length || !(promises = promises.filter(v => v != null)).length)
@@ -890,6 +914,11 @@ var pools;
         });
     }
     TSDNPromise.race = race;
+    /**
+     * Creates a new resolved promise for the provided value.
+     * @param value A value or promise.
+     * @returns A promise whose internal state matches the provided promise.
+     */
     function resolve(value) {
         return isPromise(value) ? wrap(value) : new Fulfilled(value);
     }

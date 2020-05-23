@@ -9,7 +9,6 @@
  * https://promisesaplus.com/
  * https://github.com/kriskowal/q
  */
-import type from '@tsdotnet/type';
 import { DisposableBase } from '@tsdotnet/disposable';
 import ObjectDisposedException from '@tsdotnet/disposable/dist/ObjectDisposedException';
 import ArgumentException from '@tsdotnet/exceptions/dist/ArgumentException';
@@ -18,6 +17,7 @@ import InvalidOperationException from '@tsdotnet/exceptions/dist/InvalidOperatio
 import ObjectPool from '@tsdotnet/object-pool';
 import defer from '@tsdotnet/threading/dist/defer';
 import deferImmediate from '@tsdotnet/threading/dist/deferImmediate';
+import type from '@tsdotnet/type';
 const VOID0 = void 0, NULL = null, PROMISE = 'Promise', PROMISE_STATE = PROMISE + 'State', THEN = 'then', TARGET = 'target';
 function isPromise(value) {
     return type.hasMemberOfType(value, THEN, "function" /* Function */);
@@ -127,7 +127,6 @@ export class PromiseBase extends PromiseState {
     //readonly [Symbol.toStringTag]: "Promise";
     constructor() {
         super(TSDNPromise.State.Pending);
-        // @ts-ignore
         this._disposableObjectName = PROMISE;
     }
     /**
@@ -637,10 +636,9 @@ export class PromiseCollection extends DisposableBase {
      */
     reduce(reduction, initialValue) {
         this.throwIfDisposed();
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        return TSDNPromise.wrap(this._source
-            // @ts-ignore
-            .reduce((previous, current, i, array) => handleSyncIfPossible(previous, (p) => handleSyncIfPossible(current, (c) => reduction(p, c, i, array))), isPromise(initialValue)
+        return TSDNPromise.wrap(this._source.reduce((previous, current, i, array) => handleSyncIfPossible(previous, (p) => handleSyncIfPossible(current, (c) => reduction(p, c, i, array))), isPromise(initialValue)
             ? initialValue
             : new Fulfilled(initialValue)));
     }
@@ -739,6 +737,12 @@ var pools;
         return new TSDNPromise(e);
     }
     TSDNPromise.factory = factory;
+    /**
+     * Takes a set of promises and returns a PromiseCollection.
+     * @param {PromiseLike<any> | PromiseLike<any>[]} first
+     * @param {PromiseLike<any>} rest
+     * @return {PromiseCollection<any>}
+     */
     function group(first, ...rest) {
         if (!first && !rest.length)
             throw new ArgumentNullException('promises');
@@ -746,6 +750,12 @@ var pools;
             .concat(rest));
     }
     TSDNPromise.group = group;
+    /**
+     * Returns a promise that is fulfilled with an array containing the fulfillment value of each promise, or is rejected with the same rejection reason as the first promise to be rejected.
+     * @param {PromiseLike<any> | PromiseLike<any>[]} first
+     * @param {PromiseLike<any>} rest
+     * @return {ArrayPromise<any>}
+     */
     function all(first, ...rest) {
         if (!first && !rest.length)
             throw new ArgumentNullException('promises');
@@ -799,6 +809,13 @@ var pools;
         });
     }
     TSDNPromise.all = all;
+    /**
+     * Returns a promise that is fulfilled with array of provided promises when all provided promises have resolved (fulfill or reject).
+     * Unlike .all this method waits for all rejections as well as fulfillment.
+     * @param {PromiseLike<any> | PromiseLike<any>[]} first
+     * @param {PromiseLike<any>} rest
+     * @return {ArrayPromise<PromiseLike<any>>}
+     */
     function waitAll(first, ...rest) {
         if (!first && !rest.length)
             throw new ArgumentNullException('promises');
@@ -839,6 +856,13 @@ var pools;
         });
     }
     TSDNPromise.waitAll = waitAll;
+    /**
+     * Creates a Promise that is resolved or rejected when any of the provided Promises are resolved
+     * or rejected.
+     * @param {PromiseLike<any> | PromiseLike<any>[]} first
+     * @param {PromiseLike<any>} rest
+     * @return {PromiseBase<any>}
+     */
     function race(first, ...rest) {
         let promises = first && ((first) instanceof (Array) ? first : [first]).concat(rest); // yay a copy?
         if (!promises || !promises.length || !(promises = promises.filter(v => v != null)).length)
@@ -876,6 +900,11 @@ var pools;
         });
     }
     TSDNPromise.race = race;
+    /**
+     * Creates a new resolved promise for the provided value.
+     * @param value A value or promise.
+     * @returns A promise whose internal state matches the provided promise.
+     */
     function resolve(value) {
         return isPromise(value) ? wrap(value) : new Fulfilled(value);
     }

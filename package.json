@@ -39,7 +39,7 @@
   "homepage": "https://github.com/tsdotnet/promises#readme",
   "devDependencies": {
     "@tsdotnet/array-utility": "^1.0.20",
-    "@tsdotnet/stopwatch": "^1.0.6",
+    "@tsdotnet/stopwatch": "^1.0.7",
     "@types/chai": "^4.2.11",
     "@types/mocha": "^7.0.2",
     "@typescript-eslint/eslint-plugin": "^3.0.0",
@@ -64,10 +64,10 @@
   "dependencies": {
     "@tsdotnet/common-interfaces": "^1.0.4",
     "@tsdotnet/compare": "^1.3.13",
-    "@tsdotnet/disposable": "^1.1.16",
+    "@tsdotnet/disposable": "^1.1.19",
     "@tsdotnet/exceptions": "^1.0.16",
-    "@tsdotnet/object-pool": "^1.0.4",
-    "@tsdotnet/threading": "^1.0.9",
+    "@tsdotnet/object-pool": "^1.0.5",
+    "@tsdotnet/threading": "^1.0.10",
     "@tsdotnet/type": "^1.0.8",
     "tslib": "^2.0.0"
   }

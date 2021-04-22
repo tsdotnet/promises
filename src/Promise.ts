@@ -10,7 +10,6 @@
  * https://github.com/kriskowal/q
  */
 
-
 import {Closure, Selector} from '@tsdotnet/common-interfaces';
 import {DisposableBase} from '@tsdotnet/disposable';
 import ObjectDisposedException from '@tsdotnet/disposable/dist/ObjectDisposedException';

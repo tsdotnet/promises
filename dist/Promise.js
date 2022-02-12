@@ -14,14 +14,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Promise = exports.PromiseCollection = exports.ArrayPromise = exports.TSDNPromise = exports.Rejected = exports.Fulfilled = exports.Resolved = exports.Resolvable = exports.PromiseBase = exports.PromiseState = void 0;
 const tslib_1 = require("tslib");
 const disposable_1 = require("@tsdotnet/disposable");
-const ObjectDisposedException_1 = tslib_1.__importDefault(require("@tsdotnet/disposable/dist/ObjectDisposedException"));
-const ArgumentException_1 = tslib_1.__importDefault(require("@tsdotnet/exceptions/dist/ArgumentException"));
-const ArgumentNullException_1 = tslib_1.__importDefault(require("@tsdotnet/exceptions/dist/ArgumentNullException"));
-const InvalidOperationException_1 = tslib_1.__importDefault(require("@tsdotnet/exceptions/dist/InvalidOperationException"));
-const object_pool_1 = tslib_1.__importDefault(require("@tsdotnet/object-pool"));
-const defer_1 = tslib_1.__importDefault(require("@tsdotnet/threading/dist/defer"));
-const deferImmediate_1 = tslib_1.__importDefault(require("@tsdotnet/threading/dist/deferImmediate"));
-const type_1 = tslib_1.__importDefault(require("@tsdotnet/type"));
+const ObjectDisposedException_1 = (0, tslib_1.__importDefault)(require("@tsdotnet/disposable/dist/ObjectDisposedException"));
+const ArgumentException_1 = (0, tslib_1.__importDefault)(require("@tsdotnet/exceptions/dist/ArgumentException"));
+const ArgumentNullException_1 = (0, tslib_1.__importDefault)(require("@tsdotnet/exceptions/dist/ArgumentNullException"));
+const InvalidOperationException_1 = (0, tslib_1.__importDefault)(require("@tsdotnet/exceptions/dist/InvalidOperationException"));
+const object_pool_1 = (0, tslib_1.__importDefault)(require("@tsdotnet/object-pool"));
+const defer_1 = (0, tslib_1.__importDefault)(require("@tsdotnet/threading/dist/defer"));
+const deferImmediate_1 = (0, tslib_1.__importDefault)(require("@tsdotnet/threading/dist/deferImmediate"));
+const type_1 = (0, tslib_1.__importDefault)(require("@tsdotnet/type"));
 const VOID0 = void 0, NULL = null, PROMISE = 'Promise', PROMISE_STATE = PROMISE + 'State', THEN = 'then', TARGET = 'target';
 function isPromise(value) {
     return type_1.default.hasMemberOfType(value, THEN, "function" /* Function */);
@@ -177,7 +177,7 @@ class PromiseBase extends PromiseState {
      * @param onRejected
      */
     done(onFulfilled, onRejected) {
-        defer_1.default(() => this.doneNow(onFulfilled, onRejected));
+        (0, defer_1.default)(() => this.doneNow(onFulfilled, onRejected));
     }
     /**
      * Will yield for a number of milliseconds from the time called before continuing.
@@ -187,7 +187,7 @@ class PromiseBase extends PromiseState {
     delayFromNow(milliseconds = 0) {
         this.throwIfDisposed();
         return new TSDNPromise((resolve, reject) => {
-            defer_1.default(() => {
+            (0, defer_1.default)(() => {
                 this.doneNow(v => resolve(v), e => reject(e));
             }, milliseconds);
         }, true // Since the resolve/reject is deferred.
@@ -204,7 +204,7 @@ class PromiseBase extends PromiseState {
         if (this.isSettled)
             return this.delayFromNow(milliseconds);
         return new TSDNPromise((resolve, reject) => {
-            this.doneNow(v => defer_1.default(() => resolve(v), milliseconds), e => defer_1.default(() => reject(e), milliseconds));
+            this.doneNow(v => (0, defer_1.default)(() => resolve(v), milliseconds), e => (0, defer_1.default)(() => reject(e), milliseconds));
         }, true // Since the resolve/reject is deferred.
         );
     }
@@ -248,7 +248,7 @@ class PromiseBase extends PromiseState {
      * @returns {PromiseBase}
      */
     finallyThis(fin, synchronous) {
-        const f = synchronous ? fin : () => deferImmediate_1.default(fin);
+        const f = synchronous ? fin : () => (0, deferImmediate_1.default)(fin);
         this.doneNow(f, f);
         return this;
     }
@@ -431,7 +431,7 @@ class TSDNPromise extends Resolvable {
         if (forceSynchronous)
             resolver(fulfillHandler, rejectHandler);
         else
-            deferImmediate_1.default(() => resolver(fulfillHandler, rejectHandler));
+            (0, deferImmediate_1.default)(() => resolver(fulfillHandler, rejectHandler));
     }
     resolve(result, throwIfSettled = false) {
         this.throwIfDisposed();

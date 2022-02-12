@@ -64,12 +64,12 @@ export default class LazyPromise<T>
 
 		// Setup the timer.
 		let timeout = defer(() => {
-				timedOut = true;
-				// If the promise was requested already go ahead and pass the request on to the parent.
-				if(pass)
-					pass();
-			},
-			milliseconds);
+			timedOut = true;
+			// If the promise was requested already go ahead and pass the request on to the parent.
+			if(pass)
+				pass();
+		},
+		milliseconds);
 
 		return new LazyPromise<T>(
 			(resolve, reject) => {

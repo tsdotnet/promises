@@ -861,7 +861,7 @@ export class ArrayPromise<T>
 	 */
 	reduce (
 		reduction: (previousValue: T, currentValue: T, i?: number, array?: T[]) => T,
-		initialValue?: T): PromiseBase<T>
+		initialValue?: T): PromiseBase<T>;
 
 	/**
 	 * Simplifies the use of a reduce function on an array of results when the source is assured to be an array.
@@ -871,7 +871,7 @@ export class ArrayPromise<T>
 	 */
 	reduce<U> (
 		reduction: (previousValue: U, currentValue: T, i?: number, array?: T[]) => U,
-		initialValue: U): PromiseBase<U>
+		initialValue: U): PromiseBase<U>;
 
 	/**
 	 * Simplifies the use of a reduce function on an array of results when the source is assured to be an array.
@@ -984,7 +984,7 @@ export class PromiseCollection<T>
 	 */
 	reduce (
 		reduction: (previousValue: T, currentValue: T, i?: number, array?: PromiseLike<T>[]) => T,
-		initialValue?: T | PromiseLike<T>): PromiseBase<T>
+		initialValue?: T | PromiseLike<T>): PromiseBase<T>;
 
 	/**
 	 * Behaves like array reduce.
@@ -995,7 +995,7 @@ export class PromiseCollection<T>
 	 */
 	reduce<U> (
 		reduction: (previousValue: U, currentValue: T, i?: number, array?: PromiseLike<T>[]) => U,
-		initialValue: U | PromiseLike<U>): PromiseBase<U>
+		initialValue: U | PromiseLike<U>): PromiseBase<U>;
 
 	/**
 	 * Behaves like array reduce.
@@ -1016,14 +1016,12 @@ export class PromiseCollection<T>
 			current: PromiseLike<T>,
 			i: number,
 			array: PromiseLike<T>[]) =>
-				handleSyncIfPossible(previous,
-					(p: U) => handleSyncIfPossible(current, (c: T) => reduction(p, c, i, array))),
+			handleSyncIfPossible(previous,
+				(p: U) => handleSyncIfPossible(current, (c: T) => reduction(p, c, i, array))),
 
-			isPromise(initialValue)
-				? initialValue
-				: new Fulfilled(initialValue as any)
-			)
-		);
+		isPromise(initialValue)
+			? initialValue
+			: new Fulfilled(initialValue as any)));
 	}
 
 	protected _onDispose (): void
@@ -1187,7 +1185,7 @@ export namespace TSDNPromise
 	 * @param {PromiseLike<T>[]} promises
 	 * @return {PromiseCollection<T>}
 	 */
-	export function group<T> (promises: PromiseLike<T>[]): PromiseCollection<T>
+	export function group<T> (promises: PromiseLike<T>[]): PromiseCollection<T>;
 
 	/**
 	 * Takes a set of promises and returns a PromiseCollection.
@@ -1197,7 +1195,7 @@ export namespace TSDNPromise
 	 */
 	export function group<T> (
 		promise: PromiseLike<T>,
-		...rest: PromiseLike<T>[]): PromiseCollection<T>
+		...rest: PromiseLike<T>[]): PromiseCollection<T>;
 
 	/**
 	 * Takes a set of promises and returns a PromiseCollection.
@@ -1222,7 +1220,7 @@ export namespace TSDNPromise
 	 * @param {PromiseLike<T>[]} promises
 	 * @return {ArrayPromise<T>}
 	 */
-	export function all<T> (promises: PromiseLike<T>[]): ArrayPromise<T>
+	export function all<T> (promises: PromiseLike<T>[]): ArrayPromise<T>;
 
 	/**
 	 * Returns a promise that is fulfilled with an array containing the fulfillment value of each promise, or is rejected with the same rejection reason as the first promise to be rejected.
@@ -1230,7 +1228,7 @@ export namespace TSDNPromise
 	 * @param {PromiseLike<T>} rest
 	 * @return {ArrayPromise<T>}
 	 */
-	export function all<T> (promise: PromiseLike<T>, ...rest: PromiseLike<T>[]): ArrayPromise<T>
+	export function all<T> (promise: PromiseLike<T>, ...rest: PromiseLike<T>[]): ArrayPromise<T>;
 	/**
 	 * Returns a promise that is fulfilled with an array containing the fulfillment value of each promise, or is rejected with the same rejection reason as the first promise to be rejected.
 	 * @param {PromiseLike<any> | PromiseLike<any>[]} first
@@ -1306,7 +1304,7 @@ export namespace TSDNPromise
 	 * @param {PromiseLike<T>[]} promises
 	 * @return {ArrayPromise<PromiseLike<T>>}
 	 */
-	export function waitAll<T> (promises: PromiseLike<T>[]): ArrayPromise<PromiseLike<T>>
+	export function waitAll<T> (promises: PromiseLike<T>[]): ArrayPromise<PromiseLike<T>>;
 
 	/**
 	 * Returns a promise that is fulfilled with array of provided promises when all provided promises have resolved (fulfill or reject).
@@ -1317,7 +1315,7 @@ export namespace TSDNPromise
 	 */
 	export function waitAll<T> (
 		promise: PromiseLike<T>,
-		...rest: PromiseLike<T>[]): ArrayPromise<PromiseLike<T>>
+		...rest: PromiseLike<T>[]): ArrayPromise<PromiseLike<T>>;
 
 	/**
 	 * Returns a promise that is fulfilled with array of provided promises when all provided promises have resolved (fulfill or reject).
@@ -1385,7 +1383,7 @@ export namespace TSDNPromise
 	 * @param {PromiseLike<T>[]} promises
 	 * @return {PromiseBase<T>}
 	 */
-	export function race<T> (promises: PromiseLike<T>[]): PromiseBase<T>
+	export function race<T> (promises: PromiseLike<T>[]): PromiseBase<T>;
 
 	/**
 	 * Creates a Promise that is resolved or rejected when any of the provided Promises are resolved
@@ -1394,7 +1392,7 @@ export namespace TSDNPromise
 	 * @param {PromiseLike<T>} rest
 	 * @return {PromiseBase<T>}
 	 */
-	export function race<T> (promise: PromiseLike<T>, ...rest: PromiseLike<T>[]): PromiseBase<T>
+	export function race<T> (promise: PromiseLike<T>, ...rest: PromiseLike<T>[]): PromiseBase<T>;
 
 	/**
 	 * Creates a Promise that is resolved or rejected when any of the provided Promises are resolved
@@ -1456,7 +1454,7 @@ export namespace TSDNPromise
 	 * Creates a new resolved promise .
 	 * @returns A resolved promise.
 	 */
-	export function resolve (): PromiseBase<void>
+	export function resolve (): PromiseBase<void>;
 
 	/**
 	 * Creates a new resolved promise for the provided value.
@@ -1497,7 +1495,7 @@ export namespace TSDNPromise
 	export function resolveAll<T> (resolutions: Array<T | PromiseLike<T>>): PromiseCollection<T>;
 	export function resolveAll<T> (
 		promise: T | PromiseLike<T>,
-		...rest: Array<T | PromiseLike<T>>): PromiseCollection<T>
+		...rest: Array<T | PromiseLike<T>>): PromiseCollection<T>;
 	export function resolveAll (
 		first: any | PromiseLike<any> | Array<any | PromiseLike<any>>,
 		...rest: Array<any | PromiseLike<any>>): PromiseCollection<any>

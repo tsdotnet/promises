@@ -1,6 +1,7 @@
 {
   "entryPoints": [
-    "./src/Promise.ts"
+    "./src/Promise.ts",
+    "./src/LazyPromise.ts"
   ],
   "out": "docs",
   "includeVersion": true,

@@ -5,8 +5,8 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 const tslib_1 = require("tslib");
-const ArgumentNullException_1 = (0, tslib_1.__importDefault)(require("@tsdotnet/exceptions/dist/ArgumentNullException"));
-const defer_1 = (0, tslib_1.__importDefault)(require("@tsdotnet/threading/dist/defer"));
+const ArgumentNullException_1 = tslib_1.__importDefault(require("@tsdotnet/exceptions/dist/ArgumentNullException"));
+const defer_1 = tslib_1.__importDefault(require("@tsdotnet/threading/dist/defer"));
 const Promise_1 = require("./Promise");
 const VOID0 = void 0;
 /**

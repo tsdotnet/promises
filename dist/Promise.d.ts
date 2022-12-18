@@ -6,7 +6,7 @@
  */
 import { Closure, Selector } from '@tsdotnet/common-interfaces';
 import { DisposableBase } from '@tsdotnet/disposable';
-export declare type Resolver = Selector<TSDNPromise.Resolution<any>, any> | null | undefined;
+export type Resolver = Selector<TSDNPromise.Resolution<any>, any> | null | undefined;
 export declare class PromiseState<T> extends DisposableBase {
     protected _state: TSDNPromise.State;
     protected _result?: T | undefined;

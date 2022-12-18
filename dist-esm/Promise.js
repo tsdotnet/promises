@@ -20,7 +20,7 @@ import deferImmediate from '@tsdotnet/threading/dist/deferImmediate';
 import type from '@tsdotnet/type';
 const VOID0 = void 0, NULL = null, PROMISE = 'Promise', PROMISE_STATE = PROMISE + 'State', THEN = 'then', TARGET = 'target';
 function isPromise(value) {
-    return type.hasMemberOfType(value, THEN, "function" /* Function */);
+    return type.hasMemberOfType(value, THEN, "function" /* type.Value.Function */);
 }
 function resolve(value, resolver, promiseFactory) {
     const nextValue = resolver

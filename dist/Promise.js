@@ -14,17 +14,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Promise = exports.PromiseCollection = exports.ArrayPromise = exports.TSDNPromise = exports.Rejected = exports.Fulfilled = exports.Resolved = exports.Resolvable = exports.PromiseBase = exports.PromiseState = void 0;
 const tslib_1 = require("tslib");
 const disposable_1 = require("@tsdotnet/disposable");
-const ObjectDisposedException_1 = (0, tslib_1.__importDefault)(require("@tsdotnet/disposable/dist/ObjectDisposedException"));
-const ArgumentException_1 = (0, tslib_1.__importDefault)(require("@tsdotnet/exceptions/dist/ArgumentException"));
-const ArgumentNullException_1 = (0, tslib_1.__importDefault)(require("@tsdotnet/exceptions/dist/ArgumentNullException"));
-const InvalidOperationException_1 = (0, tslib_1.__importDefault)(require("@tsdotnet/exceptions/dist/InvalidOperationException"));
-const object_pool_1 = (0, tslib_1.__importDefault)(require("@tsdotnet/object-pool"));
-const defer_1 = (0, tslib_1.__importDefault)(require("@tsdotnet/threading/dist/defer"));
-const deferImmediate_1 = (0, tslib_1.__importDefault)(require("@tsdotnet/threading/dist/deferImmediate"));
-const type_1 = (0, tslib_1.__importDefault)(require("@tsdotnet/type"));
+const ObjectDisposedException_1 = tslib_1.__importDefault(require("@tsdotnet/disposable/dist/ObjectDisposedException"));
+const ArgumentException_1 = tslib_1.__importDefault(require("@tsdotnet/exceptions/dist/ArgumentException"));
+const ArgumentNullException_1 = tslib_1.__importDefault(require("@tsdotnet/exceptions/dist/ArgumentNullException"));
+const InvalidOperationException_1 = tslib_1.__importDefault(require("@tsdotnet/exceptions/dist/InvalidOperationException"));
+const object_pool_1 = tslib_1.__importDefault(require("@tsdotnet/object-pool"));
+const defer_1 = tslib_1.__importDefault(require("@tsdotnet/threading/dist/defer"));
+const deferImmediate_1 = tslib_1.__importDefault(require("@tsdotnet/threading/dist/deferImmediate"));
+const type_1 = tslib_1.__importDefault(require("@tsdotnet/type"));
 const VOID0 = void 0, NULL = null, PROMISE = 'Promise', PROMISE_STATE = PROMISE + 'State', THEN = 'then', TARGET = 'target';
 function isPromise(value) {
-    return type_1.default.hasMemberOfType(value, THEN, "function" /* Function */);
+    return type_1.default.hasMemberOfType(value, THEN, "function" /* type.Value.Function */);
 }
 function resolve(value, resolver, promiseFactory) {
     const nextValue = resolver

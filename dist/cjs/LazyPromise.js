@@ -1,20 +1,22 @@
+"use strict";
 /*!
  * @author electricessence / https://github.com/electricessence/
  * Licensing: MIT
  */
-import ArgumentNullException from '@tsdotnet/exceptions/dist/ArgumentNullException';
-import defer from '@tsdotnet/threading/dist/defer';
-import { TSDNPromise } from './Promise';
+Object.defineProperty(exports, "__esModule", { value: true });
+const exceptions_1 = require("@tsdotnet/exceptions");
+const threading_1 = require("@tsdotnet/threading");
+const Promise_1 = require("./Promise");
 const VOID0 = void 0;
 /**
  * A promise that waits for the first then to trigger the resolver.
  */
-export default class LazyPromise extends TSDNPromise {
+class LazyPromise extends Promise_1.TSDNPromise {
     constructor(_resolver) {
         super();
         this._resolver = _resolver;
         if (!_resolver)
-            throw new ArgumentNullException('resolver');
+            throw new exceptions_1.ArgumentNullException('resolver');
         this._resolvedCalled = true;
     }
     thenSynchronous(onFulfilled, onRejected) {
@@ -43,7 +45,7 @@ export default class LazyPromise extends TSDNPromise {
         let pass;
         let timedOut = false;
         // Setup the timer.
-        let timeout = defer(() => {
+        let timeout = (0, threading_1.defer)(() => {
             timedOut = true;
             // If the promise was requested already go ahead and pass the request on to the parent.
             if (pass)
@@ -95,7 +97,7 @@ export default class LazyPromise extends TSDNPromise {
         {
             let detector = () => {
                 if (finalize) // We may already be wrapped up so never mind!
-                    timeout = defer(finalize, milliseconds);
+                    timeout = (0, threading_1.defer)(finalize, milliseconds);
             };
             // Calling super.doneNow does not trigger resolution.
             // This simply waits for resolution to happen.
@@ -107,7 +109,7 @@ export default class LazyPromise extends TSDNPromise {
         return new LazyPromise((resolve, reject) => {
             // Because of the lazy nature of this promise, this could enter here at any time.
             if (this.isPending) {
-                this.doneNow(v => defer(() => resolve(v), milliseconds), e => defer(() => reject(e), milliseconds));
+                this.doneNow(v => (0, threading_1.defer)(() => resolve(v), milliseconds), e => (0, threading_1.defer)(() => reject(e), milliseconds));
                 finalize();
             }
             else {
@@ -135,4 +137,5 @@ export default class LazyPromise extends TSDNPromise {
         }
     }
 }
+exports.default = LazyPromise;
 //# sourceMappingURL=LazyPromise.js.map

@@ -4,14 +4,14 @@
  * Although most of the following code is written from scratch, it is
  * heavily influenced by Q (https://github.com/kriskowal/q) and uses some of Q's spec.
  */
-import { Closure, Selector } from '@tsdotnet/common-interfaces';
+import type { Closure, Selector } from '@tsdotnet/common-interfaces';
 import { DisposableBase } from '@tsdotnet/disposable';
 export type Resolver = Selector<TSDNPromise.Resolution<any>, any> | null | undefined;
 export declare class PromiseState<T> extends DisposableBase {
     protected _state: TSDNPromise.State;
     protected _result?: T | undefined;
-    protected _error?: any;
-    constructor(_state: TSDNPromise.State, _result?: T | undefined, _error?: any);
+    protected _error?: any | undefined;
+    constructor(_state: TSDNPromise.State, _result?: T | undefined, _error?: any | undefined);
     get state(): TSDNPromise.State;
     get isPending(): boolean;
     get isSettled(): boolean;

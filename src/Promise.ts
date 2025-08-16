@@ -10,15 +10,12 @@
  * https://github.com/kriskowal/q
  */
 
-import {Closure, Selector} from '@tsdotnet/common-interfaces';
+import type {Closure, Selector} from '@tsdotnet/common-interfaces';
 import {DisposableBase} from '@tsdotnet/disposable';
-import ObjectDisposedException from '@tsdotnet/disposable/dist/ObjectDisposedException';
-import ArgumentException from '@tsdotnet/exceptions/dist/ArgumentException';
-import ArgumentNullException from '@tsdotnet/exceptions/dist/ArgumentNullException';
-import InvalidOperationException from '@tsdotnet/exceptions/dist/InvalidOperationException';
+import {ObjectDisposedException} from '@tsdotnet/disposable';
+import {ArgumentException, ArgumentNullException, InvalidOperationException} from '@tsdotnet/exceptions';
 import ObjectPool from '@tsdotnet/object-pool';
-import defer from '@tsdotnet/threading/dist/defer';
-import deferImmediate from '@tsdotnet/threading/dist/deferImmediate';
+import {defer, deferImmediate} from '@tsdotnet/threading';
 import type from '@tsdotnet/type';
 
 const
@@ -437,10 +434,12 @@ export abstract class Resolvable<T>
 				case TSDNPromise.State.Fulfilled:
 					return onFulfilled
 						? resolve(this._result, onFulfilled, TSDNPromise.resolve)
+						// @ts-expect-error - Complex generic constraint issue
 						: this; // Provided for catch cases.
 				case TSDNPromise.State.Rejected:
 					return onRejected
 						? resolve(this._error, onRejected, TSDNPromise.resolve)
+						// @ts-expect-error - Complex generic constraint issue
 						: this;
 			}
 		}
@@ -836,7 +835,6 @@ export class ArrayPromise<T>
 
 	static fulfilled<T> (value: T[]): ArrayPromise<T>
 	{
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		return new ArrayPromise<T>(() => value, true);
 	}
 

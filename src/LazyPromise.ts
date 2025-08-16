@@ -3,10 +3,10 @@
  * Licensing: MIT
  */
 
-import {Closure} from '@tsdotnet/common-interfaces';
-import ArgumentNullException from '@tsdotnet/exceptions/dist/ArgumentNullException';
-import Cancellable from '@tsdotnet/threading/dist/Cancellable';
-import defer from '@tsdotnet/threading/dist/defer';
+import type {Closure} from '@tsdotnet/common-interfaces';
+import {ArgumentNullException} from '@tsdotnet/exceptions';
+import type {Cancellable} from '@tsdotnet/threading';
+import {defer} from '@tsdotnet/threading';
 import {PromiseBase, TSDNPromise} from './Promise';
 
 const VOID0: any = void 0;

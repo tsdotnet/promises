@@ -14,13 +14,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Promise = exports.PromiseCollection = exports.ArrayPromise = exports.TSDNPromise = exports.Rejected = exports.Fulfilled = exports.Resolved = exports.Resolvable = exports.PromiseBase = exports.PromiseState = void 0;
 const tslib_1 = require("tslib");
 const disposable_1 = require("@tsdotnet/disposable");
-const ObjectDisposedException_1 = tslib_1.__importDefault(require("@tsdotnet/disposable/dist/ObjectDisposedException"));
-const ArgumentException_1 = tslib_1.__importDefault(require("@tsdotnet/exceptions/dist/ArgumentException"));
-const ArgumentNullException_1 = tslib_1.__importDefault(require("@tsdotnet/exceptions/dist/ArgumentNullException"));
-const InvalidOperationException_1 = tslib_1.__importDefault(require("@tsdotnet/exceptions/dist/InvalidOperationException"));
+const disposable_2 = require("@tsdotnet/disposable");
+const exceptions_1 = require("@tsdotnet/exceptions");
 const object_pool_1 = tslib_1.__importDefault(require("@tsdotnet/object-pool"));
-const defer_1 = tslib_1.__importDefault(require("@tsdotnet/threading/dist/defer"));
-const deferImmediate_1 = tslib_1.__importDefault(require("@tsdotnet/threading/dist/deferImmediate"));
+const threading_1 = require("@tsdotnet/threading");
 const type_1 = tslib_1.__importDefault(require("@tsdotnet/type"));
 const VOID0 = void 0, NULL = null, PROMISE = 'Promise', PROMISE_STATE = PROMISE + 'State', THEN = 'then', TARGET = 'target';
 function isPromise(value) {
@@ -77,7 +74,7 @@ function handleSyncIfPossible(p, onFulfilled, onRejected) {
         return p.then(onFulfilled, onRejected);
 }
 function newODE() {
-    return new ObjectDisposedException_1.default('TSDNPromise', 'An underlying promise-result was disposed.');
+    return new disposable_2.ObjectDisposedException('TSDNPromise', 'An underlying promise-result was disposed.');
 }
 class PromiseState extends disposable_1.DisposableBase {
     constructor(_state, _result, _error) {
@@ -177,7 +174,7 @@ class PromiseBase extends PromiseState {
      * @param onRejected
      */
     done(onFulfilled, onRejected) {
-        (0, defer_1.default)(() => this.doneNow(onFulfilled, onRejected));
+        (0, threading_1.defer)(() => this.doneNow(onFulfilled, onRejected));
     }
     /**
      * Will yield for a number of milliseconds from the time called before continuing.
@@ -187,7 +184,7 @@ class PromiseBase extends PromiseState {
     delayFromNow(milliseconds = 0) {
         this.throwIfDisposed();
         return new TSDNPromise((resolve, reject) => {
-            (0, defer_1.default)(() => {
+            (0, threading_1.defer)(() => {
                 this.doneNow(v => resolve(v), e => reject(e));
             }, milliseconds);
         }, true // Since the resolve/reject is deferred.
@@ -204,7 +201,7 @@ class PromiseBase extends PromiseState {
         if (this.isSettled)
             return this.delayFromNow(milliseconds);
         return new TSDNPromise((resolve, reject) => {
-            this.doneNow(v => (0, defer_1.default)(() => resolve(v), milliseconds), e => (0, defer_1.default)(() => reject(e), milliseconds));
+            this.doneNow(v => (0, threading_1.defer)(() => resolve(v), milliseconds), e => (0, threading_1.defer)(() => reject(e), milliseconds));
         }, true // Since the resolve/reject is deferred.
         );
     }
@@ -248,7 +245,7 @@ class PromiseBase extends PromiseState {
      * @returns {PromiseBase}
      */
     finallyThis(fin, synchronous) {
-        const f = synchronous ? fin : () => (0, deferImmediate_1.default)(fin);
+        const f = synchronous ? fin : () => (0, threading_1.deferImmediate)(fin);
         this.doneNow(f, f);
         return this;
     }
@@ -275,10 +272,12 @@ class Resolvable extends PromiseBase {
                 case TSDNPromise.State.Fulfilled:
                     return onFulfilled
                         ? resolve(this._result, onFulfilled, TSDNPromise.resolve)
+                        // @ts-expect-error - Complex generic constraint issue
                         : this; // Provided for catch cases.
                 case TSDNPromise.State.Rejected:
                     return onRejected
                         ? resolve(this._error, onRejected, TSDNPromise.resolve)
+                        // @ts-expect-error - Complex generic constraint issue
                         : this;
             }
         }
@@ -327,9 +326,9 @@ class PromiseWrapper extends Resolvable {
         super();
         this._target = _target;
         if (!_target)
-            throw new ArgumentNullException_1.default(TARGET);
+            throw new exceptions_1.ArgumentNullException(TARGET);
         if (!isPromise(_target))
-            throw new ArgumentException_1.default(TARGET, 'Must be a promise-like object.');
+            throw new exceptions_1.ArgumentException(TARGET, 'Must be a promise-like object.');
         _target.then((v) => {
             this._state = TSDNPromise.State.Fulfilled;
             this._result = v;
@@ -394,11 +393,11 @@ class TSDNPromise extends Resolvable {
     }
     resolveUsing(resolver, forceSynchronous = false) {
         if (!resolver)
-            throw new ArgumentNullException_1.default('resolver');
+            throw new exceptions_1.ArgumentNullException('resolver');
         if (this._resolvedCalled)
-            throw new InvalidOperationException_1.default('.resolve() already called.');
+            throw new exceptions_1.InvalidOperationException('.resolve() already called.');
         if (this.state)
-            throw new InvalidOperationException_1.default('Already resolved: ' + TSDNPromise.State[this.state]);
+            throw new exceptions_1.InvalidOperationException('Already resolved: ' + TSDNPromise.State[this.state]);
         this._resolvedCalled = true;
         let state = 0;
         const rejectHandler = (reason) => {
@@ -431,21 +430,21 @@ class TSDNPromise extends Resolvable {
         if (forceSynchronous)
             resolver(fulfillHandler, rejectHandler);
         else
-            (0, deferImmediate_1.default)(() => resolver(fulfillHandler, rejectHandler));
+            (0, threading_1.deferImmediate)(() => resolver(fulfillHandler, rejectHandler));
     }
     resolve(result, throwIfSettled = false) {
         this.throwIfDisposed();
         if (result == this)
-            throw new InvalidOperationException_1.default('Cannot resolve a promise as itself.');
+            throw new exceptions_1.InvalidOperationException('Cannot resolve a promise as itself.');
         if (this._state) {
             // Same value? Ignore...
             if (!throwIfSettled || this._state == TSDNPromise.State.Fulfilled && this._result === result)
                 return;
-            throw new InvalidOperationException_1.default('Changing the fulfilled state/value of a promise is not supported.');
+            throw new exceptions_1.InvalidOperationException('Changing the fulfilled state/value of a promise is not supported.');
         }
         if (this._resolvedCalled) {
             if (throwIfSettled)
-                throw new InvalidOperationException_1.default('.resolve() already called.');
+                throw new exceptions_1.InvalidOperationException('.resolve() already called.');
             return;
         }
         this._resolveInternal(result);
@@ -456,11 +455,11 @@ class TSDNPromise extends Resolvable {
             // Same value? Ignore...
             if (!throwIfSettled || this._state == TSDNPromise.State.Rejected && this._error === error)
                 return;
-            throw new InvalidOperationException_1.default('Changing the rejected state/value of a promise is not supported.');
+            throw new exceptions_1.InvalidOperationException('Changing the rejected state/value of a promise is not supported.');
         }
         if (this._resolvedCalled) {
             if (throwIfSettled)
-                throw new InvalidOperationException_1.default('.resolve() already called.');
+                throw new exceptions_1.InvalidOperationException('.resolve() already called.');
             return;
         }
         this._rejectInternal(error);
@@ -759,7 +758,7 @@ var pools;
      */
     function group(first, ...rest) {
         if (!first && !rest.length)
-            throw new ArgumentNullException_1.default('promises');
+            throw new exceptions_1.ArgumentNullException('promises');
         return new PromiseCollection(((first) instanceof (Array) ? first : [first])
             .concat(rest));
     }
@@ -772,7 +771,7 @@ var pools;
      */
     function all(first, ...rest) {
         if (!first && !rest.length)
-            throw new ArgumentNullException_1.default('promises');
+            throw new exceptions_1.ArgumentNullException('promises');
         let promises = ((first) instanceof (Array) ? first : [first]).concat(rest); // yay a copy!
         if (!promises.length || promises.every(v => !v))
             return new ArrayPromise(r => r(promises), true); // it's a new empty, reuse it. :|
@@ -832,7 +831,7 @@ var pools;
      */
     function waitAll(first, ...rest) {
         if (!first && !rest.length)
-            throw new ArgumentNullException_1.default('promises');
+            throw new exceptions_1.ArgumentNullException('promises');
         const promises = ((first) instanceof (Array) ? first : [first]).concat(rest); // yay a copy!
         if (!promises.length || promises.every(v => !v))
             return new ArrayPromise(r => r(promises), true); // it's a new empty, reuse it. :|
@@ -880,7 +879,7 @@ var pools;
     function race(first, ...rest) {
         let promises = first && ((first) instanceof (Array) ? first : [first]).concat(rest); // yay a copy?
         if (!promises || !promises.length || !(promises = promises.filter(v => v != null)).length)
-            throw new ArgumentException_1.default('Nothing to wait for.');
+            throw new exceptions_1.ArgumentException('Nothing to wait for.');
         const len = promises.length;
         // Only one?  Nothing to race.
         if (len == 1)
@@ -935,7 +934,7 @@ var pools;
     TSDNPromise.using = using;
     function resolveAll(first, ...rest) {
         if (!first && !rest.length)
-            throw new ArgumentNullException_1.default('resolutions');
+            throw new exceptions_1.ArgumentNullException('resolutions');
         return new PromiseCollection(((first) instanceof (Array) ? first : [first])
             .concat(rest)
             .map((v) => resolve(v)));
@@ -976,7 +975,7 @@ var pools;
      */
     function wrap(target) {
         if (!target)
-            throw new ArgumentNullException_1.default(TARGET);
+            throw new exceptions_1.ArgumentNullException(TARGET);
         // noinspection SuspiciousInstanceOfGuard
         return isPromise(target)
             ? (target instanceof PromiseBase ? target : new PromiseWrapper(target))
@@ -990,11 +989,10 @@ var pools;
      */
     function createFrom(then) {
         if (!then)
-            throw new ArgumentNullException_1.default(THEN);
+            throw new exceptions_1.ArgumentNullException(THEN);
         return new PromiseWrapper({ then: then });
     }
     TSDNPromise.createFrom = createFrom;
-})(TSDNPromise = exports.TSDNPromise || (exports.TSDNPromise = {}));
-exports.Promise = TSDNPromise;
+})(TSDNPromise || (exports.Promise = exports.TSDNPromise = TSDNPromise = {}));
 exports.default = TSDNPromise;
 //# sourceMappingURL=Promise.js.map

@@ -10,13 +10,10 @@
  * https://github.com/kriskowal/q
  */
 import { DisposableBase } from '@tsdotnet/disposable';
-import ObjectDisposedException from '@tsdotnet/disposable/dist/ObjectDisposedException';
-import ArgumentException from '@tsdotnet/exceptions/dist/ArgumentException';
-import ArgumentNullException from '@tsdotnet/exceptions/dist/ArgumentNullException';
-import InvalidOperationException from '@tsdotnet/exceptions/dist/InvalidOperationException';
+import { ObjectDisposedException } from '@tsdotnet/disposable';
+import { ArgumentException, ArgumentNullException, InvalidOperationException } from '@tsdotnet/exceptions';
 import ObjectPool from '@tsdotnet/object-pool';
-import defer from '@tsdotnet/threading/dist/defer';
-import deferImmediate from '@tsdotnet/threading/dist/deferImmediate';
+import { defer, deferImmediate } from '@tsdotnet/threading';
 import type from '@tsdotnet/type';
 const VOID0 = void 0, NULL = null, PROMISE = 'Promise', PROMISE_STATE = PROMISE + 'State', THEN = 'then', TARGET = 'target';
 function isPromise(value) {
@@ -76,6 +73,9 @@ function newODE() {
     return new ObjectDisposedException('TSDNPromise', 'An underlying promise-result was disposed.');
 }
 export class PromiseState extends DisposableBase {
+    _state;
+    _result;
+    _error;
     constructor(_state, _result, _error) {
         super(PROMISE_STATE);
         this._state = _state;
@@ -269,10 +269,12 @@ export class Resolvable extends PromiseBase {
                 case TSDNPromise.State.Fulfilled:
                     return onFulfilled
                         ? resolve(this._result, onFulfilled, TSDNPromise.resolve)
+                        // @ts-expect-error - Complex generic constraint issue
                         : this; // Provided for catch cases.
                 case TSDNPromise.State.Rejected:
                     return onRejected
                         ? resolve(this._error, onRejected, TSDNPromise.resolve)
+                        // @ts-expect-error - Complex generic constraint issue
                         : this;
             }
         }
@@ -313,6 +315,7 @@ export class Rejected extends Resolved {
  * Provided as a means for extending the interface of other PromiseLike<T> objects.
  */
 class PromiseWrapper extends Resolvable {
+    _target;
     constructor(_target) {
         super();
         this._target = _target;
@@ -359,6 +362,18 @@ class PromiseWrapper extends Resolvable {
  * This promise class that facilitates pending resolution.
  */
 export class TSDNPromise extends Resolvable {
+    // Protects against double calling.
+    _resolvedCalled;
+    /*
+     * A note about deferring:
+     * The caller can set resolveImmediate to true if they intend to initialize code that will end up being deferred itself.
+     * This eliminates the extra defer that will occur internally.
+     * But for the most part, resolveImmediate = false (the default) will ensure the constructor will not block.
+     *
+     * resolveUsing allows for the same ability but does not defer by default: allowing the caller to take on the work load.
+     * If calling resolve or reject and a deferred response is desired, then use deferImmediate with a closure to do so.
+     */
+    _waiting;
     constructor(resolver, forceSynchronous = false) {
         super();
         if (resolver)
@@ -567,6 +582,7 @@ const PROMISE_COLLECTION = 'PromiseCollection';
  * A Promise collection exposes useful methods for handling a collection of promises and their results.
  */
 export class PromiseCollection extends DisposableBase {
+    _source;
     constructor(source) {
         super(PROMISE_COLLECTION);
         this._source = source && source.slice() || [];

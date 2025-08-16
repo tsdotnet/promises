@@ -10,7 +10,7 @@ export default class LazyPromise<T> extends TSDNPromise<T> {
     private _resolver;
     constructor(_resolver: TSDNPromise.Executor<T>);
     thenSynchronous<TFulfilled = T, TRejected = never>(onFulfilled: TSDNPromise.Fulfill<T, TFulfilled> | undefined | null, onRejected?: TSDNPromise.Reject<TRejected> | null): PromiseBase<TFulfilled | TRejected>;
-    doneNow(onFulfilled: (v?: T) => unknown, onRejected?: (v?: unknown) => unknown): void;
+    doneNow(onFulfilled: (v?: T) => any, onRejected?: (v?: any) => any): void;
     /**
      * Will yield for a number of milliseconds from the time called before continuing.
      * @param milliseconds

@@ -548,7 +548,6 @@ exports.Promise = TSDNPromise;
  */
 class ArrayPromise extends TSDNPromise {
     static fulfilled(value) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         return new ArrayPromise(() => value, true);
     }
     /**

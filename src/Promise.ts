@@ -16,7 +16,7 @@ import {ObjectDisposedException} from '@tsdotnet/disposable';
 import {ArgumentException, ArgumentNullException, InvalidOperationException} from '@tsdotnet/exceptions';
 import ObjectPool from '@tsdotnet/object-pool';
 import {defer, deferImmediate} from '@tsdotnet/threading';
-import type from '@tsdotnet/type';
+import typeUtil from '@tsdotnet/type';
 
 const
 	VOID0: any            = void 0,
@@ -27,14 +27,14 @@ const
 
 function isPromise<T> (value: unknown): value is PromiseLike<T>
 {
-	return type.hasMemberOfType(value, THEN, type.Value.Function);
+	return typeUtil.hasMemberOfType(value, THEN, typeUtil.Value.Function);
 }
 
 export type Resolver = Selector<TSDNPromise.Resolution<any>, any> | null | undefined;
 
 function resolve<T> (
 	value: TSDNPromise.Resolution<T>, resolver: Resolver,
-	promiseFactory: (v: any) => PromiseBase<any>): PromiseBase<any>
+	promiseFactory: (v: unknown) => PromiseBase<any>): PromiseBase<any>
 {
 	const nextValue = resolver
 		? resolver(value)
@@ -46,9 +46,9 @@ function resolve<T> (
 }
 
 function handleResolution (
-	p: TSDNPromise<any> | null | undefined,
-	value: TSDNPromise.Resolution<any>,
-	resolver?: Resolver): any
+	p: TSDNPromise<unknown> | null | undefined,
+	value: TSDNPromise.Resolution<unknown>,
+	resolver?: Resolver): unknown
 {
 	try
 	{
@@ -124,7 +124,7 @@ export class PromiseState<T>
 	constructor (
 		protected _state: TSDNPromise.State,
 		protected _result?: T,
-		protected _error?: any)
+		protected _error?: unknown)
 	{
 		super(PROMISE_STATE);
 	}
@@ -160,7 +160,7 @@ export class PromiseState<T>
 		return this.getResult();
 	}
 
-	get error (): any
+	get error (): unknown
 	{
 		this.throwIfDisposed();
 		return this.getError();
@@ -186,7 +186,7 @@ export class PromiseState<T>
 		return this._result;
 	}
 
-	protected getError (): any
+	protected getError (): unknown
 	{
 		return this._error;
 	}
@@ -213,8 +213,8 @@ export abstract class PromiseBase<T>
 	 * @param onRejected
 	 */
 	abstract doneNow (
-		onFulfilled: TSDNPromise.Fulfill<T, any> | undefined | null,
-		onRejected?: TSDNPromise.Reject<any> | null): void;
+		onFulfilled: TSDNPromise.Fulfill<T, unknown> | undefined | null,
+		onRejected?: TSDNPromise.Reject<unknown> | null): void;
 
 	/**
 	 * Calls the respective handlers once the promise is resolved.
@@ -232,8 +232,8 @@ export abstract class PromiseBase<T>
 	 * @param onRejected
 	 */
 	thenThis (
-		onFulfilled: TSDNPromise.Fulfill<T, any> | undefined | null,
-		onRejected?: TSDNPromise.Reject<any> | null): this
+		onFulfilled: TSDNPromise.Fulfill<T, unknown> | undefined | null,
+		onRejected?: TSDNPromise.Reject<unknown> | null): this
 	{
 		this.doneNow(onFulfilled, onRejected);
 		return this;
@@ -295,8 +295,8 @@ export abstract class PromiseBase<T>
 	 * @param onRejected
 	 */
 	done (
-		onFulfilled: TSDNPromise.Fulfill<T, any> | undefined | null,
-		onRejected?: TSDNPromise.Reject<any> | null): void
+		onFulfilled: TSDNPromise.Fulfill<T, unknown> | undefined | null,
+		onRejected?: TSDNPromise.Reject<unknown> | null): void
 	{
 		defer(() => this.doneNow(onFulfilled, onRejected));
 	}
@@ -405,8 +405,8 @@ export abstract class Resolvable<T>
 {
 
 	doneNow (
-		onFulfilled: TSDNPromise.Fulfill<T, any> | undefined | null,
-		onRejected?: TSDNPromise.Reject<any> | null): void
+		onFulfilled: TSDNPromise.Fulfill<T, unknown> | undefined | null,
+		onRejected?: TSDNPromise.Reject<unknown> | null): void
 	{
 		this.throwIfDisposed();
 
@@ -545,8 +545,8 @@ class PromiseWrapper<T>
 	}
 
 	doneNow (
-		onFulfilled: TSDNPromise.Fulfill<T, any> | undefined | null,
-		onRejected?: TSDNPromise.Reject<any> | null): void
+		onFulfilled: TSDNPromise.Fulfill<T, unknown> | undefined | null,
+		onRejected?: TSDNPromise.Reject<unknown> | null): void
 	{
 		this.throwIfDisposed();
 
@@ -611,8 +611,8 @@ export class TSDNPromise<T>
 	}
 
 	doneNow (
-		onFulfilled: TSDNPromise.Fulfill<T, any> | undefined | null,
-		onRejected?: TSDNPromise.Reject<any> | null): void
+		onFulfilled: TSDNPromise.Fulfill<T, unknown> | undefined | null,
+		onRejected?: TSDNPromise.Reject<unknown> | null): void
 	{
 		this.throwIfDisposed();
 
@@ -1146,7 +1146,7 @@ export namespace TSDNPromise
 
 	export interface Reject<TResult>
 	{
-		(reason: any): Resolution<TResult>;
+		(reason: unknown): Resolution<TResult>;
 	}
 
 	export interface Then<T, TResult>
@@ -1164,7 +1164,7 @@ export namespace TSDNPromise
 	{
 		(
 			resolve: (value?: T | PromiseLike<T>) => void,
-			reject: (reason?: any) => void): void;
+			reject: (reason?: unknown) => void): void;
 	}
 
 
@@ -1569,13 +1569,11 @@ export namespace TSDNPromise
 
 interface PromiseCallbacks<T>
 {
-	onFulfilled?: TSDNPromise.Fulfill<T, any>;
-	onRejected?: TSDNPromise.Reject<any>;
-	promise?: TSDNPromise<any>;
+	onFulfilled?: TSDNPromise.Fulfill<T, unknown> | undefined;
+	onRejected?: TSDNPromise.Reject<unknown> | undefined;
+	promise?: TSDNPromise<unknown> | undefined;
 }
 
 export {TSDNPromise as Promise};
 
 export default TSDNPromise;
-
-

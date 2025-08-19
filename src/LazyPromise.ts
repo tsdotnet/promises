@@ -34,8 +34,8 @@ export default class LazyPromise<T>
 	}
 
 	doneNow (
-		onFulfilled: (v?: T) => any,
-		onRejected?: (v?: any) => any): void
+		onFulfilled: (v?: T) => unknown,
+		onRejected?: (v?: unknown) => unknown): void
 	{
 		this._onThen();
 		super.doneNow(onFulfilled, onRejected);

@@ -5,11 +5,6 @@
  * Although most of the following code is written from scratch, it is
  * heavily influenced by Q (https://github.com/kriskowal/q) and uses some of Q's spec.
  */
-/*
- * Resources:
- * https://promisesaplus.com/
- * https://github.com/kriskowal/q
- */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Promise = exports.PromiseCollection = exports.ArrayPromise = exports.TSDNPromise = exports.Rejected = exports.Fulfilled = exports.Resolved = exports.Resolvable = exports.PromiseBase = exports.PromiseState = void 0;
 const tslib_1 = require("tslib");
@@ -21,7 +16,7 @@ const threading_1 = require("@tsdotnet/threading");
 const type_1 = tslib_1.__importDefault(require("@tsdotnet/type"));
 const VOID0 = void 0, NULL = null, PROMISE = 'Promise', PROMISE_STATE = PROMISE + 'State', THEN = 'then', TARGET = 'target';
 function isPromise(value) {
-    return type_1.default.hasMemberOfType(value, THEN, "function" /* type.Value.Function */);
+    return type_1.default.hasMemberOfType(value, THEN, "function");
 }
 function resolve(value, resolver, promiseFactory) {
     const nextValue = resolver
@@ -34,13 +29,13 @@ function resolve(value, resolver, promiseFactory) {
 function handleResolution(p, value, resolver) {
     try {
         const v = resolver ? resolver(value) : value;
-        if (p) { //noinspection JSIgnoredPromiseFromCall
+        if (p) {
             p.resolve(v);
         }
         return null;
     }
     catch (ex) {
-        if (p) { //noinspection JSIgnoredPromiseFromCall
+        if (p) {
             p.reject(ex);
         }
         return ex;
@@ -58,7 +53,6 @@ function handleResolutionMethods(targetFulfill, targetReject, value, resolver) {
     }
 }
 function handleDispatch(p, onFulfilled, onRejected) {
-    // noinspection SuspiciousInstanceOfGuard
     if (p instanceof PromiseBase) {
         p.doneNow(onFulfilled, onRejected);
     }
@@ -67,7 +61,6 @@ function handleDispatch(p, onFulfilled, onRejected) {
     }
 }
 function handleSyncIfPossible(p, onFulfilled, onRejected) {
-    // noinspection SuspiciousInstanceOfGuard
     if (p instanceof PromiseBase)
         return p.thenSynchronous(onFulfilled, onRejected);
     else
@@ -90,7 +83,7 @@ class PromiseState extends disposable_1.DisposableBase {
         return this.getState() === TSDNPromise.State.Pending;
     }
     get isSettled() {
-        return this.getState() != TSDNPromise.State.Pending; // Will also include undefined==0 aka disposed!=resolved.
+        return this.getState() != TSDNPromise.State.Pending;
     }
     get isFulfilled() {
         return this.getState() === TSDNPromise.State.Fulfilled;
@@ -114,9 +107,6 @@ class PromiseState extends disposable_1.DisposableBase {
     getState() {
         return this._state;
     }
-    /*
-     * Providing overrides allows for special defer or lazy sub classes.
-     */
     getResult() {
         return this._result;
     }
@@ -126,27 +116,14 @@ class PromiseState extends disposable_1.DisposableBase {
 }
 exports.PromiseState = PromiseState;
 class PromiseBase extends PromiseState {
-    //readonly [Symbol.toStringTag]: "Promise";
     constructor() {
         super(TSDNPromise.State.Pending);
         this._disposableObjectName = PROMISE;
     }
-    /**
-     * Same as 'thenSynchronous' but does not return the result.  Returns the current promise instead.
-     * You may not need an additional promise result, and this will not create a new one.
-     * @param onFulfilled
-     * @param onRejected
-     */
     thenThis(onFulfilled, onRejected) {
         this.doneNow(onFulfilled, onRejected);
         return this;
     }
-    /**
-     * Standard .then method that defers execution until resolved.
-     * @param onFulfilled
-     * @param onRejected
-     * @returns {TSDNPromise}
-     */
     then(onFulfilled, onRejected) {
         this.throwIfDisposed();
         return new TSDNPromise((resolve, reject) => {
@@ -155,95 +132,43 @@ class PromiseBase extends PromiseState {
                 : reject(error));
         });
     }
-    /**
-     * Same as .then but doesn't trap errors.  Exceptions may end up being fatal.
-     * @param onFulfilled
-     * @param onRejected
-     * @returns {TSDNPromise}
-     */
     thenAllowFatal(onFulfilled, onRejected) {
         this.throwIfDisposed();
         return new TSDNPromise((resolve, reject) => {
             this.doneNow(result => resolve((onFulfilled ? onFulfilled(result) : result)), error => reject(onRejected ? onRejected(error) : error));
         });
     }
-    /**
-     * .done is provided as a non-standard means that maps to similar functionality in other promise libraries.
-     * As stated by promisejs.org: 'then' is to 'done' as 'map' is to 'forEach'.
-     * @param onFulfilled
-     * @param onRejected
-     */
     done(onFulfilled, onRejected) {
         (0, threading_1.defer)(() => this.doneNow(onFulfilled, onRejected));
     }
-    /**
-     * Will yield for a number of milliseconds from the time called before continuing.
-     * @param milliseconds
-     * @returns A promise that yields to the current execution and executes after a delay.
-     */
     delayFromNow(milliseconds = 0) {
         this.throwIfDisposed();
         return new TSDNPromise((resolve, reject) => {
             (0, threading_1.defer)(() => {
                 this.doneNow(v => resolve(v), e => reject(e));
             }, milliseconds);
-        }, true // Since the resolve/reject is deferred.
-        );
+        }, true);
     }
-    /**
-     * Will yield for a number of milliseconds from after this promise resolves.
-     * If the promise is already resolved, the delay will start from now.
-     * @param milliseconds
-     * @returns A promise that yields to the current execution and executes after a delay.
-     */
     delayAfterResolve(milliseconds = 0) {
         this.throwIfDisposed();
         if (this.isSettled)
             return this.delayFromNow(milliseconds);
         return new TSDNPromise((resolve, reject) => {
             this.doneNow(v => (0, threading_1.defer)(() => resolve(v), milliseconds), e => (0, threading_1.defer)(() => reject(e), milliseconds));
-        }, true // Since the resolve/reject is deferred.
-        );
+        }, true);
     }
-    /**
-     * Shortcut for trapping a rejection.
-     * @param onRejected
-     * @returns {PromiseBase<TResult>}
-     */
     'catch'(onRejected) {
         return this.then(VOID0, onRejected);
     }
-    /**
-     * Shortcut for trapping a rejection but will allow exceptions to propagate within the onRejected handler.
-     * @param onRejected
-     * @returns {PromiseBase<TResult>}
-     */
     catchAllowFatal(onRejected) {
         return this.thenAllowFatal(VOID0, onRejected);
     }
-    /**
-     * Shortcut to for handling either resolve or reject.
-     * @param fin
-     * @returns {PromiseBase<TResult>}
-     */
     'finally'(fin) {
         return this.then(fin, fin);
     }
-    /**
-     * Shortcut to for handling either resolve or reject but will allow exceptions to propagate within the handler.
-     * @param fin
-     * @returns {PromiseBase<TResult>}
-     */
     finallyAllowFatal(fin) {
         return this.thenAllowFatal(fin, fin);
     }
-    /**
-     * Shortcut to for handling either resolve or reject.  Returns the current promise instead.
-     * You may not need an additional promise result, and this will not create a new one.
-     * @param fin
-     * @param synchronous
-     * @returns {PromiseBase}
-     */
     finallyThis(fin, synchronous) {
         const f = synchronous ? fin : () => (0, threading_1.deferImmediate)(fin);
         this.doneNow(f, f);
@@ -272,12 +197,10 @@ class Resolvable extends PromiseBase {
                 case TSDNPromise.State.Fulfilled:
                     return onFulfilled
                         ? resolve(this._result, onFulfilled, TSDNPromise.resolve)
-                        // @ts-expect-error - Complex generic constraint issue
-                        : this; // Provided for catch cases.
+                        : this;
                 case TSDNPromise.State.Rejected:
                     return onRejected
                         ? resolve(this._error, onRejected, TSDNPromise.resolve)
-                        // @ts-expect-error - Complex generic constraint issue
                         : this;
             }
         }
@@ -288,9 +211,6 @@ class Resolvable extends PromiseBase {
     }
 }
 exports.Resolvable = Resolvable;
-/**
- * The simplest usable version of a promise which returns synchronously the resolved state provided.
- */
 class Resolved extends Resolvable {
     constructor(state, result, error) {
         super();
@@ -300,27 +220,18 @@ class Resolved extends Resolvable {
     }
 }
 exports.Resolved = Resolved;
-/**
- * A fulfilled Resolved<T>.  Provided for readability.
- */
 class Fulfilled extends Resolved {
     constructor(value) {
         super(TSDNPromise.State.Fulfilled, value);
     }
 }
 exports.Fulfilled = Fulfilled;
-/**
- * A rejected Resolved<T>.  Provided for readability.
- */
 class Rejected extends Resolved {
     constructor(error) {
         super(TSDNPromise.State.Rejected, VOID0, error);
     }
 }
 exports.Rejected = Rejected;
-/**
- * Provided as a means for extending the interface of other PromiseLike<T> objects.
- */
 class PromiseWrapper extends Resolvable {
     constructor(_target) {
         super();
@@ -364,9 +275,6 @@ class PromiseWrapper extends Resolvable {
         this._target = VOID0;
     }
 }
-/**
- * This promise class that facilitates pending resolution.
- */
 class TSDNPromise extends Resolvable {
     constructor(resolver, forceSynchronous = false) {
         super();
@@ -375,7 +283,6 @@ class TSDNPromise extends Resolvable {
     }
     thenSynchronous(onFulfilled, onRejected) {
         this.throwIfDisposed();
-        // Already fulfilled?
         if (this._state)
             return super.thenSynchronous(onFulfilled, onRejected);
         const p = new TSDNPromise();
@@ -385,7 +292,6 @@ class TSDNPromise extends Resolvable {
     }
     doneNow(onFulfilled, onRejected) {
         this.throwIfDisposed();
-        // Already fulfilled?
         if (this._state)
             return super.doneNow(onFulfilled, onRejected);
         (this._waiting || (this._waiting = []))
@@ -402,7 +308,6 @@ class TSDNPromise extends Resolvable {
         let state = 0;
         const rejectHandler = (reason) => {
             if (state) {
-                // Someone else's promise handling down stream could double call this. :\
                 console.warn(state == -1
                     ? 'Rejection called multiple times'
                     : 'Rejection called after fulfilled.');
@@ -415,7 +320,6 @@ class TSDNPromise extends Resolvable {
         };
         const fulfillHandler = (v) => {
             if (state) {
-                // Someone else's promise handling down stream could double call this. :\
                 console.warn(state == 1
                     ? 'Fulfill called multiple times'
                     : 'Fulfill called after rejection.');
@@ -426,7 +330,6 @@ class TSDNPromise extends Resolvable {
                 this.resolve(v);
             }
         };
-        // There are some performance edge cases where there caller is not blocking upstream and does not need to defer.
         if (forceSynchronous)
             resolver(fulfillHandler, rejectHandler);
         else
@@ -437,7 +340,6 @@ class TSDNPromise extends Resolvable {
         if (result == this)
             throw new exceptions_1.InvalidOperationException('Cannot resolve a promise as itself.');
         if (this._state) {
-            // Same value? Ignore...
             if (!throwIfSettled || this._state == TSDNPromise.State.Fulfilled && this._result === result)
                 return;
             throw new exceptions_1.InvalidOperationException('Changing the fulfilled state/value of a promise is not supported.');
@@ -452,7 +354,6 @@ class TSDNPromise extends Resolvable {
     reject(error, throwIfSettled = false) {
         this.throwIfDisposed();
         if (this._state) {
-            // Same value? Ignore...
             if (!throwIfSettled || this._state == TSDNPromise.State.Rejected && this._error === error)
                 return;
             throw new exceptions_1.InvalidOperationException('Changing the rejected state/value of a promise is not supported.');
@@ -477,9 +378,6 @@ class TSDNPromise extends Resolvable {
     _resolveInternal(result) {
         if (this.wasDisposed)
             return;
-        // Note: Avoid recursion if possible.
-        // Check ahead of time for resolution and resolve appropriately
-        // noinspection SuspiciousInstanceOfGuard
         while (result instanceof PromiseBase) {
             const r = result;
             if (this._emitDisposalRejection(r))
@@ -509,9 +407,7 @@ class TSDNPromise extends Resolvable {
                 for (const c of o) {
                     const { onFulfilled, promise } = c;
                     pools.PromiseCallbacks.recycle(c);
-                    //let ex =
                     handleResolution(promise, result, onFulfilled);
-                    //if(!p && ex) console.error("Unhandled exception in onFulfilled:",ex);
                 }
                 o.length = 0;
             }
@@ -524,16 +420,14 @@ class TSDNPromise extends Resolvable {
         this._error = error;
         const o = this._waiting;
         if (o) {
-            this._waiting = null; // null = finished. undefined = hasn't started.
+            this._waiting = null;
             for (const c of o) {
                 const { onRejected, promise } = c;
                 pools.PromiseCallbacks.recycle(c);
                 if (onRejected) {
-                    //let ex =
                     handleResolution(promise, error, onRejected);
-                    //if(!p && ex) console.error("Unhandled exception in onRejected:",ex);
                 }
-                else if (promise) { //noinspection JSIgnoredPromiseFromCall
+                else if (promise) {
                     promise.reject(error);
                 }
             }
@@ -543,30 +437,16 @@ class TSDNPromise extends Resolvable {
 }
 exports.TSDNPromise = TSDNPromise;
 exports.Promise = TSDNPromise;
-/**
- * By providing an ArrayPromise we expose useful methods/shortcuts for dealing with array results.
- */
 class ArrayPromise extends TSDNPromise {
     static fulfilled(value) {
         return new ArrayPromise(() => value, true);
     }
-    /**
-     * Simplifies the use of a map function on an array of results when the source is assured to be an array.
-     * @param transform
-     * @returns {PromiseBase<Array<any>>}
-     */
     map(transform) {
         this.throwIfDisposed();
         return new ArrayPromise(resolve => {
             this.doneNow(result => resolve(result.map(transform)));
         }, true);
     }
-    /**
-     * Simplifies the use of a reduce function on an array of results when the source is assured to be an array.
-     * @param reduction
-     * @param initialValue
-     * @returns {PromiseBase<any>}
-     */
     reduce(reduction, initialValue) {
         return this
             .thenSynchronous(result => result.reduce(reduction, initialValue));
@@ -574,53 +454,27 @@ class ArrayPromise extends TSDNPromise {
 }
 exports.ArrayPromise = ArrayPromise;
 const PROMISE_COLLECTION = 'PromiseCollection';
-/**
- * A Promise collection exposes useful methods for handling a collection of promises and their results.
- */
 class PromiseCollection extends disposable_1.DisposableBase {
     constructor(source) {
         super(PROMISE_COLLECTION);
         this._source = source && source.slice() || [];
     }
-    /**
-     * Returns a copy of the source promises.
-     * @returns {PromiseLike<PromiseLike<any>>[]}
-     */
     get promises() {
         this.throwIfDisposed();
         return this._source.slice();
     }
-    /**
-     * Returns a promise that is fulfilled with an array containing the fulfillment value of each promise, or is rejected with the same rejection reason as the first promise to be rejected.
-     * @returns {PromiseBase<any>}
-     */
     all() {
         this.throwIfDisposed();
         return TSDNPromise.all(this._source);
     }
-    /**
-     * Creates a Promise that is resolved or rejected when any of the provided Promises are resolved
-     * or rejected.
-     * @returns {PromiseBase<any>} A new Promise.
-     */
     race() {
         this.throwIfDisposed();
         return TSDNPromise.race(this._source);
     }
-    /**
-     * Returns a promise that is fulfilled with array of provided promises when all provided promises have resolved (fulfill or reject).
-     * Unlike .all this method waits for all rejections as well as fulfillment.
-     * @returns {PromiseBase<PromiseLike<any>[]>}
-     */
     waitAll() {
         this.throwIfDisposed();
         return TSDNPromise.waitAll(this._source);
     }
-    /**
-     * Waits for all the values to resolve and then applies a transform.
-     * @param transform
-     * @returns {PromiseBase<Array<any>>}
-     */
     map(transform) {
         this.throwIfDisposed();
         return new ArrayPromise(resolve => {
@@ -628,27 +482,12 @@ class PromiseCollection extends disposable_1.DisposableBase {
                 .doneNow(result => resolve(result.map(transform)));
         }, true);
     }
-    /**
-     * Applies a transform to each promise and defers the result.
-     * Unlike map, this doesn't wait for all promises to resolve, ultimately improving the async nature of the request.
-     * @param transform
-     * @returns {PromiseCollection<U>}
-     */
     pipe(transform) {
         this.throwIfDisposed();
         return new PromiseCollection(this._source.map(p => handleSyncIfPossible(p, transform)));
     }
-    /**
-     * Behaves like array reduce.
-     * Creates the promise chain necessary to produce the desired result.
-     * @param reduction
-     * @param initialValue
-     * @returns {PromiseBase<PromiseLike<any>>}
-     */
     reduce(reduction, initialValue) {
         this.throwIfDisposed();
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         return TSDNPromise.wrap(this._source.reduce((previous, current, i, array) => handleSyncIfPossible(previous, (p) => handleSyncIfPossible(current, (c) => reduction(p, c, i, array))), isPromise(initialValue)
             ? initialValue
             : new Fulfilled(initialValue)));
@@ -662,47 +501,9 @@ class PromiseCollection extends disposable_1.DisposableBase {
 exports.PromiseCollection = PromiseCollection;
 var pools;
 (function (pools) {
-    // export module pending
-    // {
-    //
-    //
-    // 	var pool:ObjectPool<Promise<any>>;
-    //
-    // 	function getPool()
-    // 	{
-    // 		return pool || (pool = new ObjectPool<Promise<any>>(40, factory, c=>c.dispose()));
-    // 	}
-    //
-    // 	function factory():Promise<any>
-    // 	{
-    // 		return new Promise();
-    // 	}
-    //
-    // 	export function get():Promise<any>
-    // 	{
-    // 		var p:any = getPool().take();
-    // 		p.__wasDisposed = false;
-    // 		p._state = Promise.State.Pending;
-    // 		return p;
-    // 	}
-    //
-    // 	export function recycle<T>(c:Promise<T>):void
-    // 	{
-    // 		if(c) getPool().add(c);
-    // 	}
-    //
-    // }
-    //
-    // export function recycle<T>(c:PromiseBase<T>):void
-    // {
-    // 	if(!c) return;
-    // 	if(c instanceof Promise && c.constructor==Promise) pending.recycle(c);
-    // 	else c.dispose();
-    // }
     let PromiseCallbacks;
     (function (PromiseCallbacks) {
         let pool;
-        //noinspection JSUnusedLocalSymbols
         function getPool() {
             return pool
                 || (pool = new object_pool_1.default(factory, c => {
@@ -733,11 +534,6 @@ var pools;
     })(PromiseCallbacks = pools.PromiseCallbacks || (pools.PromiseCallbacks = {}));
 })(pools || (pools = {}));
 (function (TSDNPromise) {
-    /**
-     * The state of a promise.
-     * https://github.com/domenic/promises-unwrapping/blob/master/docs/states-and-fates.md
-     * If a promise is disposed the value will be undefined which will also evaluate (promise.state)==false.
-     */
     let State;
     (function (State) {
         State[State["Pending"] = 0] = "Pending";
@@ -749,12 +545,6 @@ var pools;
         return new TSDNPromise(e);
     }
     TSDNPromise.factory = factory;
-    /**
-     * Takes a set of promises and returns a PromiseCollection.
-     * @param {PromiseLike<any> | PromiseLike<any>[]} first
-     * @param {PromiseLike<any>} rest
-     * @return {PromiseCollection<any>}
-     */
     function group(first, ...rest) {
         if (!first && !rest.length)
             throw new exceptions_1.ArgumentNullException('promises');
@@ -762,25 +552,17 @@ var pools;
             .concat(rest));
     }
     TSDNPromise.group = group;
-    /**
-     * Returns a promise that is fulfilled with an array containing the fulfillment value of each promise, or is rejected with the same rejection reason as the first promise to be rejected.
-     * @param {PromiseLike<any> | PromiseLike<any>[]} first
-     * @param {PromiseLike<any>} rest
-     * @return {ArrayPromise<any>}
-     */
     function all(first, ...rest) {
         if (!first && !rest.length)
             throw new exceptions_1.ArgumentNullException('promises');
-        let promises = ((first) instanceof (Array) ? first : [first]).concat(rest); // yay a copy!
+        let promises = ((first) instanceof (Array) ? first : [first]).concat(rest);
         if (!promises.length || promises.every(v => !v))
-            return new ArrayPromise(r => r(promises), true); // it's a new empty, reuse it. :|
-        // Eliminate deferred and take the parent since all .then calls happen on next cycle anyway.
+            return new ArrayPromise(r => r(promises), true);
         return new ArrayPromise((resolve, reject) => {
             const result = [];
             const len = promises.length;
             result.length = len;
-            // Using a set instead of -- a number is more reliable if just in case one of the provided promises resolves twice.
-            let remaining = new Set(promises.map((v, i) => i)); // get all the indexes...
+            let remaining = new Set(promises.map((v, i) => i));
             const cleanup = () => {
                 reject = VOID0;
                 resolve = VOID0;
@@ -821,24 +603,15 @@ var pools;
         });
     }
     TSDNPromise.all = all;
-    /**
-     * Returns a promise that is fulfilled with array of provided promises when all provided promises have resolved (fulfill or reject).
-     * Unlike .all this method waits for all rejections as well as fulfillment.
-     * @param {PromiseLike<any> | PromiseLike<any>[]} first
-     * @param {PromiseLike<any>} rest
-     * @return {ArrayPromise<PromiseLike<any>>}
-     */
     function waitAll(first, ...rest) {
         if (!first && !rest.length)
             throw new exceptions_1.ArgumentNullException('promises');
-        const promises = ((first) instanceof (Array) ? first : [first]).concat(rest); // yay a copy!
+        const promises = ((first) instanceof (Array) ? first : [first]).concat(rest);
         if (!promises.length || promises.every(v => !v))
-            return new ArrayPromise(r => r(promises), true); // it's a new empty, reuse it. :|
-        // Eliminate deferred and take the parent since all .then calls happen on next cycle anyway.
+            return new ArrayPromise(r => r(promises), true);
         return new ArrayPromise(resolve => {
             const len = promises.length;
-            // Using a set instead of -- a number is more reliable if just in case one of the provided promises resolves twice.
-            let remaining = new Set(promises.map((v, i) => i)); // get all the indexes...
+            let remaining = new Set(promises.map((v, i) => i));
             const cleanup = () => {
                 resolve = NULL;
                 remaining.clear();
@@ -868,22 +641,13 @@ var pools;
         });
     }
     TSDNPromise.waitAll = waitAll;
-    /**
-     * Creates a Promise that is resolved or rejected when any of the provided Promises are resolved
-     * or rejected.
-     * @param {PromiseLike<any> | PromiseLike<any>[]} first
-     * @param {PromiseLike<any>} rest
-     * @return {PromiseBase<any>}
-     */
     function race(first, ...rest) {
-        let promises = first && ((first) instanceof (Array) ? first : [first]).concat(rest); // yay a copy?
+        let promises = first && ((first) instanceof (Array) ? first : [first]).concat(rest);
         if (!promises || !promises.length || !(promises = promises.filter(v => v != null)).length)
             throw new exceptions_1.ArgumentException('Nothing to wait for.');
         const len = promises.length;
-        // Only one?  Nothing to race.
         if (len == 1)
             return wrap(promises[0]);
-        // Look for already resolved promises and the first one wins.
         for (let i = 0; i < len; i++) {
             const p = promises[i];
             if (p instanceof PromiseBase && p.isSettled)
@@ -912,21 +676,10 @@ var pools;
         });
     }
     TSDNPromise.race = race;
-    /**
-     * Creates a new resolved promise for the provided value.
-     * @param value A value or promise.
-     * @returns A promise whose internal state matches the provided promise.
-     */
     function resolve(value) {
         return isPromise(value) ? wrap(value) : new Fulfilled(value);
     }
     TSDNPromise.resolve = resolve;
-    /**
-     * Syntactic shortcut for avoiding 'new'.
-     * @param resolver
-     * @param forceSynchronous
-     * @returns {TSDNPromise}
-     */
     function using(resolver, forceSynchronous = false) {
         return new TSDNPromise(resolver, forceSynchronous);
     }
@@ -939,14 +692,6 @@ var pools;
             .map((v) => resolve(v)));
     }
     TSDNPromise.resolveAll = resolveAll;
-    /**
-     * Creates a PromiseCollection containing promises that will resolve on the next tick using the transform function.
-     * This utility function does not chain promises together to create the result,
-     * it only uses one promise per transform.
-     * @param source
-     * @param transform
-     * @returns {PromiseCollection<T>}
-     */
     function map(source, transform) {
         return new PromiseCollection(source.map(d => new TSDNPromise((r, j) => {
             try {
@@ -958,34 +703,18 @@ var pools;
         })));
     }
     TSDNPromise.map = map;
-    /**
-     * Creates a new rejected promise for the provided reason.
-     * @param reason The reason the promise was rejected.
-     * @returns A new rejected Promise.
-     */
     function reject(reason) {
         return new Rejected(reason);
     }
     TSDNPromise.reject = reject;
-    /**
-     * Takes any Promise-Like object and ensures an extended version of it from this module.
-     * @param target The Promise-Like object
-     * @returns A new target that simply extends the target.
-     */
     function wrap(target) {
         if (!target)
             throw new exceptions_1.ArgumentNullException(TARGET);
-        // noinspection SuspiciousInstanceOfGuard
         return isPromise(target)
             ? (target instanceof PromiseBase ? target : new PromiseWrapper(target))
             : new Fulfilled(target);
     }
     TSDNPromise.wrap = wrap;
-    /**
-     * A function that acts like a 'then' method (aka then-able) can be extended by providing a function that takes an onFulfill and onReject.
-     * @param then
-     * @returns {PromiseWrapper<T>}
-     */
     function createFrom(then) {
         if (!then)
             throw new exceptions_1.ArgumentNullException(THEN);

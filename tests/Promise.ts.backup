@@ -2,9 +2,10 @@ import * as AU from '@tsdotnet/array-utility';
 import {ObjectDisposedException} from '@tsdotnet/disposable';
 import Stopwatch from '@tsdotnet/stopwatch';
 import {defer} from '@tsdotnet/threading';
+import { describe, it, afterEach } from 'mocha';
 import {assert} from 'chai';
-import LazyPromise from '../src/LazyPromise';
-import TSDNPromise, {Fulfilled, PromiseBase, PromiseCollection} from '../src/Promise';
+import TSDNPromise, {Fulfilled, PromiseBase, PromiseCollection} from '../src/Promise.js';
+import LazyPromise from '../src/LazyPromise.js';
 
 const REASON = 'this is not an error, but it might show up in the console';
 

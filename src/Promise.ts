@@ -126,7 +126,7 @@ export class PromiseState<T>
 		protected _result?: T,
 		protected _error?: unknown)
 	{
-		super(PROMISE_STATE);
+		super();
 	}
 
 	get state (): TSDNPromise.State
@@ -156,13 +156,13 @@ export class PromiseState<T>
 
 	get result (): T | undefined
 	{
-		this.throwIfDisposed();
+		this.assertIsAlive(true);
 		return this.getResult();
 	}
 
 	get error (): unknown
 	{
-		this.throwIfDisposed();
+		this.assertIsAlive(true);
 		return this.getError();
 	}
 
@@ -202,7 +202,6 @@ export abstract class PromiseBase<T>
 	protected constructor ()
 	{
 		super(TSDNPromise.State.Pending);
-		this._disposableObjectName = PROMISE;
 	}
 
 	/**
@@ -251,7 +250,7 @@ export abstract class PromiseBase<T>
 		onFulfilled: TSDNPromise.Fulfill<T, TFulfilled> | undefined | null,
 		onRejected?: TSDNPromise.Reject<TRejected> | null): PromiseBase<TFulfilled | TRejected>
 	{
-		this.throwIfDisposed();
+		this.assertIsAlive(true);
 
 		return new TSDNPromise<TFulfilled | TRejected>((resolve, reject) => {
 			this.doneNow(
@@ -275,7 +274,7 @@ export abstract class PromiseBase<T>
 		onFulfilled: TSDNPromise.Fulfill<T, TFulfilled> | undefined | null,
 		onRejected?: TSDNPromise.Reject<TRejected> | null): PromiseBase<TFulfilled | TRejected>
 	{
-		this.throwIfDisposed();
+		this.assertIsAlive(true);
 
 		return new TSDNPromise<TFulfilled | TRejected>((resolve, reject) => {
 			this.doneNow(
@@ -308,7 +307,7 @@ export abstract class PromiseBase<T>
 	 */
 	delayFromNow (milliseconds: number = 0): PromiseBase<T>
 	{
-		this.throwIfDisposed();
+		this.assertIsAlive(true);
 
 		return new TSDNPromise<T>(
 			(resolve, reject) => {
@@ -330,7 +329,7 @@ export abstract class PromiseBase<T>
 	 */
 	delayAfterResolve (milliseconds: number = 0): PromiseBase<T>
 	{
-		this.throwIfDisposed();
+		this.assertIsAlive(true);
 
 		if(this.isSettled) return this.delayFromNow(milliseconds);
 
@@ -408,7 +407,7 @@ export abstract class Resolvable<T>
 		onFulfilled: TSDNPromise.Fulfill<T, unknown> | undefined | null,
 		onRejected?: TSDNPromise.Reject<unknown> | null): void
 	{
-		this.throwIfDisposed();
+		this.assertIsAlive(true);
 
 		switch(this.state)
 		{
@@ -425,7 +424,7 @@ export abstract class Resolvable<T>
 		onFulfilled: TSDNPromise.Fulfill<T, TFulfilled> | undefined | null,
 		onRejected?: TSDNPromise.Reject<TRejected> | null): PromiseBase<TFulfilled | TRejected>
 	{
-		this.throwIfDisposed();
+		this.assertIsAlive(true);
 
 		try
 		{
@@ -529,7 +528,7 @@ class PromiseWrapper<T>
 		onFulfilled: TSDNPromise.Fulfill<T, TFulfilled> | undefined | null,
 		onRejected?: TSDNPromise.Reject<TRejected> | null): PromiseBase<TFulfilled | TRejected>
 	{
-		this.throwIfDisposed();
+		this.assertIsAlive(true);
 
 		const t = this._target;
 		if(!t) return super.thenSynchronous(onFulfilled, onRejected);
@@ -548,7 +547,7 @@ class PromiseWrapper<T>
 		onFulfilled: TSDNPromise.Fulfill<T, unknown> | undefined | null,
 		onRejected?: TSDNPromise.Reject<unknown> | null): void
 	{
-		this.throwIfDisposed();
+		this.assertIsAlive(true);
 
 		const t = this._target;
 		if(t)
@@ -599,7 +598,7 @@ export class TSDNPromise<T>
 		onFulfilled: TSDNPromise.Fulfill<T, TFulfilled> | undefined | null,
 		onRejected?: TSDNPromise.Reject<TRejected> | null): PromiseBase<TFulfilled | TRejected>
 	{
-		this.throwIfDisposed();
+		this.assertIsAlive(true);
 
 		// Already fulfilled?
 		if(this._state) return super.thenSynchronous(onFulfilled, onRejected);
@@ -614,7 +613,7 @@ export class TSDNPromise<T>
 		onFulfilled: TSDNPromise.Fulfill<T, unknown> | undefined | null,
 		onRejected?: TSDNPromise.Reject<unknown> | null): void
 	{
-		this.throwIfDisposed();
+		this.assertIsAlive(true);
 
 		// Already fulfilled?
 		if(this._state)
@@ -680,7 +679,7 @@ export class TSDNPromise<T>
 
 	resolve (result?: T | PromiseLike<T>, throwIfSettled: boolean = false): void
 	{
-		this.throwIfDisposed();
+		this.assertIsAlive(true);
 		if(result==this)
 			throw new InvalidOperationException('Cannot resolve a promise as itself.');
 
@@ -703,7 +702,7 @@ export class TSDNPromise<T>
 
 	reject (error: unknown, throwIfSettled: boolean = false): void
 	{
-		this.throwIfDisposed();
+		this.assertIsAlive(true);
 		if(this._state)
 		{
 			// Same value? Ignore...
@@ -845,7 +844,7 @@ export class ArrayPromise<T>
 	 */
 	map<U> (transform: (value: T) => U): ArrayPromise<U>
 	{
-		this.throwIfDisposed();
+		this.assertIsAlive(true);
 		return new ArrayPromise<U>(resolve => {
 			this.doneNow(result => resolve(result.map(transform)));
 		}, true);
@@ -899,7 +898,7 @@ export class PromiseCollection<T>
 
 	constructor (source: PromiseLike<T>[] | null | undefined)
 	{
-		super(PROMISE_COLLECTION);
+		super();
 		this._source = source && source.slice() || [];
 	}
 
@@ -909,7 +908,7 @@ export class PromiseCollection<T>
 	 */
 	get promises (): PromiseLike<T>[]
 	{
-		this.throwIfDisposed();
+		this.assertIsAlive(true);
 		return this._source.slice();
 	}
 
@@ -919,7 +918,7 @@ export class PromiseCollection<T>
 	 */
 	all (): ArrayPromise<T>
 	{
-		this.throwIfDisposed();
+		this.assertIsAlive(true);
 		return TSDNPromise.all(this._source);
 	}
 
@@ -930,7 +929,7 @@ export class PromiseCollection<T>
 	 */
 	race (): PromiseBase<T>
 	{
-		this.throwIfDisposed();
+		this.assertIsAlive(true);
 		return TSDNPromise.race(this._source);
 	}
 
@@ -941,7 +940,7 @@ export class PromiseCollection<T>
 	 */
 	waitAll (): ArrayPromise<PromiseLike<T>>
 	{
-		this.throwIfDisposed();
+		this.assertIsAlive(true);
 		return TSDNPromise.waitAll(this._source);
 	}
 
@@ -952,7 +951,7 @@ export class PromiseCollection<T>
 	 */
 	map<U> (transform: (value: T) => U): ArrayPromise<U>
 	{
-		this.throwIfDisposed();
+		this.assertIsAlive(true);
 		return new ArrayPromise<U>(resolve => {
 			this.all()
 				.doneNow(result => resolve(result.map(transform)));
@@ -967,7 +966,7 @@ export class PromiseCollection<T>
 	 */
 	pipe<U> (transform: (value: T) => U | PromiseLike<U>): PromiseCollection<U>
 	{
-		this.throwIfDisposed();
+		this.assertIsAlive(true);
 		return new PromiseCollection<U>(
 			this._source.map(p => handleSyncIfPossible(p, transform))
 		);
@@ -1006,7 +1005,7 @@ export class PromiseCollection<T>
 		reduction: (previousValue: U, currentValue: T, i?: number, array?: PromiseLike<T>[]) => U,
 		initialValue?: U | PromiseLike<U>): PromiseBase<U>
 	{
-		this.throwIfDisposed();
+		this.assertIsAlive(true);
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		// @ts-ignore
 		return TSDNPromise.wrap<U>(this._source.reduce((

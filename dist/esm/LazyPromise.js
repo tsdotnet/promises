@@ -25,7 +25,7 @@ class LazyPromise extends TSDNPromise {
         super.doneNow(onFulfilled, onRejected);
     }
     delayFromNow(milliseconds = 0) {
-        this.throwIfDisposed();
+        this.assertIsAlive(true);
         if (!this._resolver || this.isSettled)
             return super.delayFromNow(milliseconds);
         let pass;
@@ -47,7 +47,7 @@ class LazyPromise extends TSDNPromise {
         });
     }
     delayAfterResolve(milliseconds = 0) {
-        this.throwIfDisposed();
+        this.assertIsAlive(true);
         if (!this._resolver || this.isSettled)
             return super.delayAfterResolve(milliseconds);
         let pass;

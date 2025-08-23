@@ -48,7 +48,7 @@ export default class LazyPromise<T>
 	 */
 	delayFromNow (milliseconds: number = 0): PromiseBase<T>
 	{
-		this.throwIfDisposed();
+		this.assertIsAlive(true);
 
 		// If this is already guaranteed to resolve, the go ahead and pass to the super.
 		if(!this._resolver || this.isSettled)
@@ -99,7 +99,7 @@ export default class LazyPromise<T>
 	 */
 	delayAfterResolve (milliseconds: number = 0): PromiseBase<T>
 	{
-		this.throwIfDisposed();
+		this.assertIsAlive(true);
 
 		// If this is already guaranteed to resolve, the go ahead and pass to the super.
 		if(!this._resolver || this.isSettled)

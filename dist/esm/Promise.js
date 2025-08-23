@@ -10,7 +10,7 @@ import typeUtil from '@tsdotnet/type';
  * Although most of the following code is written from scratch, it is
  * heavily influenced by Q (https://github.com/kriskowal/q) and uses some of Q's spec.
  */
-const VOID0 = void 0, NULL = null, PROMISE = 'Promise', PROMISE_STATE = PROMISE + 'State', THEN = 'then', TARGET = 'target';
+const VOID0 = void 0, NULL = null, THEN = 'then', TARGET = 'target';
 function isPromise(value) {
     return typeUtil.hasMemberOfType(value, THEN, "function");
 }
@@ -70,7 +70,7 @@ class PromiseState extends DisposableBase {
     _result;
     _error;
     constructor(_state, _result, _error) {
-        super(PROMISE_STATE);
+        super();
         this._state = _state;
         this._result = _result;
         this._error = _error;
@@ -91,11 +91,11 @@ class PromiseState extends DisposableBase {
         return this.getState() === TSDNPromise.State.Rejected;
     }
     get result() {
-        this.throwIfDisposed();
+        this.assertIsAlive(true);
         return this.getResult();
     }
     get error() {
-        this.throwIfDisposed();
+        this.assertIsAlive(true);
         return this.getError();
     }
     _onDispose() {
@@ -116,14 +116,13 @@ class PromiseState extends DisposableBase {
 class PromiseBase extends PromiseState {
     constructor() {
         super(TSDNPromise.State.Pending);
-        this._disposableObjectName = PROMISE;
     }
     thenThis(onFulfilled, onRejected) {
         this.doneNow(onFulfilled, onRejected);
         return this;
     }
     then(onFulfilled, onRejected) {
-        this.throwIfDisposed();
+        this.assertIsAlive(true);
         return new TSDNPromise((resolve, reject) => {
             this.doneNow(result => handleResolutionMethods(resolve, reject, result, onFulfilled), error => onRejected
                 ? handleResolutionMethods(resolve, reject, error, onRejected)
@@ -131,7 +130,7 @@ class PromiseBase extends PromiseState {
         });
     }
     thenAllowFatal(onFulfilled, onRejected) {
-        this.throwIfDisposed();
+        this.assertIsAlive(true);
         return new TSDNPromise((resolve, reject) => {
             this.doneNow(result => resolve((onFulfilled ? onFulfilled(result) : result)), error => reject(onRejected ? onRejected(error) : error));
         });
@@ -140,7 +139,7 @@ class PromiseBase extends PromiseState {
         defer(() => this.doneNow(onFulfilled, onRejected));
     }
     delayFromNow(milliseconds = 0) {
-        this.throwIfDisposed();
+        this.assertIsAlive(true);
         return new TSDNPromise((resolve, reject) => {
             defer(() => {
                 this.doneNow(v => resolve(v), e => reject(e));
@@ -148,7 +147,7 @@ class PromiseBase extends PromiseState {
         }, true);
     }
     delayAfterResolve(milliseconds = 0) {
-        this.throwIfDisposed();
+        this.assertIsAlive(true);
         if (this.isSettled)
             return this.delayFromNow(milliseconds);
         return new TSDNPromise((resolve, reject) => {
@@ -175,7 +174,7 @@ class PromiseBase extends PromiseState {
 }
 class Resolvable extends PromiseBase {
     doneNow(onFulfilled, onRejected) {
-        this.throwIfDisposed();
+        this.assertIsAlive(true);
         switch (this.state) {
             case TSDNPromise.State.Fulfilled:
                 if (onFulfilled)
@@ -188,7 +187,7 @@ class Resolvable extends PromiseBase {
         }
     }
     thenSynchronous(onFulfilled, onRejected) {
-        this.throwIfDisposed();
+        this.assertIsAlive(true);
         try {
             switch (this.state) {
                 case TSDNPromise.State.Fulfilled:
@@ -246,7 +245,7 @@ class PromiseWrapper extends Resolvable {
         });
     }
     thenSynchronous(onFulfilled, onRejected) {
-        this.throwIfDisposed();
+        this.assertIsAlive(true);
         const t = this._target;
         if (!t)
             return super.thenSynchronous(onFulfilled, onRejected);
@@ -257,7 +256,7 @@ class PromiseWrapper extends Resolvable {
         }, true);
     }
     doneNow(onFulfilled, onRejected) {
-        this.throwIfDisposed();
+        this.assertIsAlive(true);
         const t = this._target;
         if (t)
             handleDispatch(t, onFulfilled, onRejected);
@@ -278,7 +277,7 @@ class TSDNPromise extends Resolvable {
             this.resolveUsing(resolver, forceSynchronous);
     }
     thenSynchronous(onFulfilled, onRejected) {
-        this.throwIfDisposed();
+        this.assertIsAlive(true);
         if (this._state)
             return super.thenSynchronous(onFulfilled, onRejected);
         const p = new TSDNPromise();
@@ -287,7 +286,7 @@ class TSDNPromise extends Resolvable {
         return p;
     }
     doneNow(onFulfilled, onRejected) {
-        this.throwIfDisposed();
+        this.assertIsAlive(true);
         if (this._state)
             return super.doneNow(onFulfilled, onRejected);
         (this._waiting || (this._waiting = []))
@@ -332,7 +331,7 @@ class TSDNPromise extends Resolvable {
             deferImmediate(() => resolver(fulfillHandler, rejectHandler));
     }
     resolve(result, throwIfSettled = false) {
-        this.throwIfDisposed();
+        this.assertIsAlive(true);
         if (result == this)
             throw new InvalidOperationException('Cannot resolve a promise as itself.');
         if (this._state) {
@@ -348,7 +347,7 @@ class TSDNPromise extends Resolvable {
         this._resolveInternal(result);
     }
     reject(error, throwIfSettled = false) {
-        this.throwIfDisposed();
+        this.assertIsAlive(true);
         if (this._state) {
             if (!throwIfSettled || this._state == TSDNPromise.State.Rejected && this._error === error)
                 return;
@@ -436,7 +435,7 @@ class ArrayPromise extends TSDNPromise {
         return new ArrayPromise(() => value, true);
     }
     map(transform) {
-        this.throwIfDisposed();
+        this.assertIsAlive(true);
         return new ArrayPromise(resolve => {
             this.doneNow(result => resolve(result.map(transform)));
         }, true);
@@ -446,42 +445,41 @@ class ArrayPromise extends TSDNPromise {
             .thenSynchronous(result => result.reduce(reduction, initialValue));
     }
 }
-const PROMISE_COLLECTION = 'PromiseCollection';
 class PromiseCollection extends DisposableBase {
     _source;
     constructor(source) {
-        super(PROMISE_COLLECTION);
+        super();
         this._source = source && source.slice() || [];
     }
     get promises() {
-        this.throwIfDisposed();
+        this.assertIsAlive(true);
         return this._source.slice();
     }
     all() {
-        this.throwIfDisposed();
+        this.assertIsAlive(true);
         return TSDNPromise.all(this._source);
     }
     race() {
-        this.throwIfDisposed();
+        this.assertIsAlive(true);
         return TSDNPromise.race(this._source);
     }
     waitAll() {
-        this.throwIfDisposed();
+        this.assertIsAlive(true);
         return TSDNPromise.waitAll(this._source);
     }
     map(transform) {
-        this.throwIfDisposed();
+        this.assertIsAlive(true);
         return new ArrayPromise(resolve => {
             this.all()
                 .doneNow(result => resolve(result.map(transform)));
         }, true);
     }
     pipe(transform) {
-        this.throwIfDisposed();
+        this.assertIsAlive(true);
         return new PromiseCollection(this._source.map(p => handleSyncIfPossible(p, transform)));
     }
     reduce(reduction, initialValue) {
-        this.throwIfDisposed();
+        this.assertIsAlive(true);
         return TSDNPromise.wrap(this._source.reduce((previous, current, i, array) => handleSyncIfPossible(previous, (p) => handleSyncIfPossible(current, (c) => reduction(p, c, i, array))), isPromise(initialValue)
             ? initialValue
             : new Fulfilled(initialValue)));

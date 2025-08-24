@@ -56,8 +56,8 @@ importers:
         specifier: ^1.0.34
         version: 1.0.34
       '@tsdotnet/stopwatch':
-        specifier: ^2.0.2
-        version: 2.0.2
+        specifier: ^2.0.3
+        version: 2.0.3
       '@types/chai':
         specifier: ^5.2.2
         version: 5.2.2
@@ -579,8 +579,8 @@ packages:
   '@tsdotnet/queue@1.2.12':
     resolution: {integrity: sha512-x/KUmXTZmPCMNCF/OZzNQF3OVyTy3nv1a30VOSKaE/9UV8DC7mYG253jotYHQKYUEVw6bdRRgQm+gfmJpqIn1w==}
 
-  '@tsdotnet/stopwatch@2.0.2':
-    resolution: {integrity: sha512-0DwUGwX2wuVAhZTr4nfy+GVihXNiDu3fOpbM4eJq8pxWvQXtExfRJwXf55ClZcVNFzjX0A+/uY3JRoUVhZTVcA==}
+  '@tsdotnet/stopwatch@2.0.3':
+    resolution: {integrity: sha512-xTuLxBvZjI7Sn7DNez57w3EHqpYGJz8gAMdQUhYXwnTBhqEuZ3IRKjSKLPF6eZAN8DWHZZOQEw+GbtrHYcWT+A==}
 
   '@tsdotnet/threading@2.0.3':
     resolution: {integrity: sha512-nznXcrW+gOtrvtU0vj3ppxSBYPqn49SMv0AbkNIdTbYQJmzG6M7Febw3Iqt4Jjx6jNipYS8rHHotDSD7jfbQFQ==}
@@ -2053,7 +2053,7 @@ snapshots:
       '@tsdotnet/exceptions': 1.2.4
       tslib: 2.8.1
 
-  '@tsdotnet/stopwatch@2.0.2':
+  '@tsdotnet/stopwatch@2.0.3':
     dependencies:
       '@tsdotnet/date-time': 2.0.2
       tslib: 2.8.1

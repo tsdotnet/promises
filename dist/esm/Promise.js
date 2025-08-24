@@ -711,7 +711,6 @@ var pools;
     }
     TSDNPromise.createFrom = createFrom;
 })(TSDNPromise || (TSDNPromise = {}));
-var TSDNPromise$1 = TSDNPromise;
 
-export { ArrayPromise, Fulfilled, TSDNPromise as Promise, PromiseBase, PromiseCollection, PromiseState, Rejected, Resolvable, Resolved, TSDNPromise, TSDNPromise$1 as default };
+export { ArrayPromise, Fulfilled, TSDNPromise as Promise, PromiseBase, PromiseCollection, PromiseState, Rejected, Resolvable, Resolved, TSDNPromise };
 //# sourceMappingURL=Promise.js.map

@@ -4,8 +4,7 @@
  */
 
 // Main Promise exports
-export {default as TSDNPromise, default as Promise, PromiseBase, PromiseCollection, Fulfilled} from './Promise';
-export type {PromiseState} from './Promise';
+export * from './Promise';
 
 // LazyPromise export
 export {default as LazyPromise} from './LazyPromise';

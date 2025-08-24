@@ -16,18 +16,15 @@ import {ObjectDisposedException} from '@tsdotnet/disposable';
 import {ArgumentException, ArgumentNullException, InvalidOperationException} from '@tsdotnet/exceptions';
 import ObjectPool from '@tsdotnet/object-pool';
 import {defer, deferImmediate} from '@tsdotnet/threading';
-import typeUtil from '@tsdotnet/type';
 
 const
 	VOID0: any            = void 0,
 	NULL: any             = null,
-	PROMISE               = 'Promise',
-	PROMISE_STATE         = PROMISE + 'State',
 	THEN = 'then', TARGET = 'target';
 
 function isPromise<T> (value: unknown): value is PromiseLike<T>
 {
-	return typeUtil.hasMemberOfType(value, THEN, typeUtil.Value.Function);
+	return value != null && typeof (value as any)[THEN] === 'function';
 }
 
 export type Resolver = Selector<TSDNPromise.Resolution<any>, any> | null | undefined;

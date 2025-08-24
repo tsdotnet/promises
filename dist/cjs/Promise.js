@@ -13,10 +13,9 @@ const disposable_2 = require("@tsdotnet/disposable");
 const exceptions_1 = require("@tsdotnet/exceptions");
 const object_pool_1 = tslib_1.__importDefault(require("@tsdotnet/object-pool"));
 const threading_1 = require("@tsdotnet/threading");
-const type_1 = tslib_1.__importDefault(require("@tsdotnet/type"));
-const VOID0 = void 0, NULL = null, PROMISE = 'Promise', PROMISE_STATE = PROMISE + 'State', THEN = 'then', TARGET = 'target';
+const VOID0 = void 0, NULL = null, THEN = 'then', TARGET = 'target';
 function isPromise(value) {
-    return type_1.default.hasMemberOfType(value, THEN, "function");
+    return value != null && typeof value[THEN] === 'function';
 }
 function resolve(value, resolver, promiseFactory) {
     const nextValue = resolver

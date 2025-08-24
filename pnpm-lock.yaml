@@ -42,9 +42,6 @@ importers:
       '@tsdotnet/threading':
         specifier: ^1.3.1
         version: 1.3.1
-      '@tsdotnet/type':
-        specifier: ^1.2.4
-        version: 1.2.4
       tslib:
         specifier: ^2.8.1
         version: 2.8.1

@@ -2,7 +2,6 @@ import { DisposableBase, ObjectDisposedException } from '@tsdotnet/disposable';
 import { ArgumentNullException, ArgumentException, InvalidOperationException } from '@tsdotnet/exceptions';
 import ObjectPool from '@tsdotnet/object-pool';
 import { deferImmediate, defer } from '@tsdotnet/threading';
-import typeUtil from '@tsdotnet/type';
 
 /*!
  * @author electricessence / https://github.com/electricessence/
@@ -12,7 +11,7 @@ import typeUtil from '@tsdotnet/type';
  */
 const VOID0 = void 0, NULL = null, THEN = 'then', TARGET = 'target';
 function isPromise(value) {
-    return typeUtil.hasMemberOfType(value, THEN, "function");
+    return value != null && typeof value[THEN] === 'function';
 }
 function resolve(value, resolver, promiseFactory) {
     const nextValue = resolver

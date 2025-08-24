@@ -2,14 +2,87 @@ import * as AU from '@tsdotnet/array-utility';
 import {ObjectDisposedException} from '@tsdotnet/disposable';
 import Stopwatch from '@tsdotnet/stopwatch';
 import {defer} from '@tsdotnet/threading';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import LazyPromise from '../src/LazyPromise';
 import TSDNPromise, {Fulfilled, PromiseBase, PromiseCollection} from '../src/Promise';
 
 const REASON = 'this is not an error, but it might show up in the console';
+const BREAK = 'break', NO = 'NO!';
 
 // In browsers that support strict mode, it'll be `undefined`; otherwise, the global.
 // let calledAsFunctionThis = (function() { return this; }());
+
+function testPromiseFlow (p: PromiseBase<boolean>): PromiseBase<void>
+{
+	return p
+		.then(null as any) // ensure pass through
+		.then(v => // onFulfilled
+		{
+			expect(v).toBeTruthy(); // v === true
+			return v; // *
+		}, () => // onRejected
+		{
+			expect(false).toBeTruthy();
+			return true;
+		})
+		.then(v => {
+			expect(v).toBeTruthy();
+			return v; // *
+		})
+		.then(v => {
+			expect(v).toBeTruthy();
+			return false; // *
+		})
+		.then(v => {
+			expect(!v).toBeTruthy();
+			return true; // *
+		})
+		.then(v => {
+			expect(v).toBeTruthy();
+			throw BREAK; // *
+		}, () => {
+			expect(false).toBeTruthy();
+			return NO;
+		})
+		.then(null as any, null as any) // ensure pass through
+		.then(() => {
+			// The previous promise threw/rejected so should never go here.
+			expect(false).toBeTruthy();
+			return NO;
+		}, e => {
+			expect(e).toBe(BREAK);
+			return BREAK; // *
+		})
+		.then(v => {
+			expect(v).toBe(BREAK);
+			return true; // *
+		}, () => {
+			expect(false).toBeTruthy();
+			return false;
+		})
+		.then<boolean>(v => {
+			expect(v).toBeTruthy();
+			throw BREAK; // *
+		})
+		.catch(e => {
+			expect(e).toBe(BREAK);
+			return true; // *
+		})
+		.then(v => {
+			expect(v).toBeTruthy();
+			return 10;
+		})
+		.then(v => {
+			expect(v).toBe(10);
+			throw 'force catch';
+		})
+		.catch(() => {
+			throw BREAK; // Make sure throws inside reject are captured.
+		})
+		.catch(e => {
+			expect(e).toBe(BREAK);
+		});
+}
 
 afterEach(function() {
 	//Q.onerror = null;
@@ -76,7 +149,7 @@ describe('computing sum of integers using promises', () => {
 	// 			sw.stop();
 	// 			//console.log("");
 	// 			//console.log("All Deferred Promise Compute Milliseconds: ", sw.elapsedMilliseconds);
-	// 			assert.equal(value, answer);
+	// 			expect(value).toBe(answer);
 	// 		});
 	// });
 
@@ -86,7 +159,7 @@ describe('computing sum of integers using promises', () => {
 		const r = TSDNPromise.resolve(true).then(() => {
 			wasRun = true;
 		});
-		expect(!wasRun).toBe(true); // The promise should have deferred until after closure completed.
+		expect(!wasRun, 'The promise should have deferred until after closure completed.').toBeTruthy();
 		return r;
 	});
 
@@ -111,7 +184,7 @@ describe('Resolution and Rejection', () => {
 	});
 
 	it('resolves multiple observers', () => {
-		return new Promise<void>((testResolve) => {
+		return new Promise<void>((done) => {
 			let nextTurn = false;
 
 			const resolution = 'Ta-ram pam param!';
@@ -123,11 +196,11 @@ describe('Resolution and Rejection', () => {
 			{
 				i++;
 				expect(value).toBe(resolution);
-				expect(nextTurn).toBe(true);
+				expect(nextTurn).toBeTruthy();
 				if(!nextTurn) i = count;
 				if(i===count)
 				{
-					testResolve();
+					done();
 				}
 			}
 
@@ -262,7 +335,7 @@ describe('Resolution and Rejection', () => {
 			TSDNPromise
 				.reject(BREAK)
 				.then(() => {
-					expect(false).toBeTruthy(); // 'Fulfilled when it should have been rejected.'
+					expect(false, 'Fulfilled when it should have been rejected.').toBeTruthy();
 				}, v => {
 					expect(v).toBe(BREAK);
 				})
@@ -296,26 +369,25 @@ describe('Resolution and Rejection', () => {
 
 
 	it('should be able to use a lazy', () => {
-		it('.deferFromNow', () => {
-			new LazyPromise<boolean>(() => {
-				expect(false).toBeTruthy(); // 'Should not have triggered the resolution.'
-			}).delayFromNow(1000);
+		new LazyPromise<boolean>(() => {
+			expect(false, 'Should not have triggered the resolution.').toBeTruthy();
+		}).delayFromNow(1000);
 
-			const elapsed = Stopwatch.startNew();
+		const elapsed = Stopwatch.startNew();
 
-			return testPromiseFlow(
-				new LazyPromise<boolean>(resolve => defer(() => resolve(true), 1000))
-					.delayFromNow(1000)
-					.thenThis(() => {
-						const ms = elapsed.elapsedMilliseconds;
-						expect(ms>1000 && ms<2000).toBeTruthy();
-					})
+		return testPromiseFlow(
+			new LazyPromise<boolean>(resolve => defer(() => resolve(true), 1000))
+				.delayFromNow(1000)
+				.thenThis(() => {
+					const ms = elapsed.elapsedMilliseconds;
+					expect(ms>1000 && ms<2000).toBeTruthy();
+				})
 			);
 		});
 
 		it('.deferFromNow', () => {
 			new LazyPromise<boolean>(() => {
-				expect(false).toBeTruthy(); // 'Should not have triggered the resolution.'
+				expect(false, 'Should not have triggered the resolution.').toBeTruthy();
 			}).delayAfterResolve(1000);
 
 			const elapsed = Stopwatch.startNew();
@@ -449,5 +521,3 @@ describe('Resolution and Rejection', () => {
 				() => expect(false).toBeTruthy(),
 				e => expect(e instanceof ObjectDisposedException).toBeTruthy())
 	);
-
-});

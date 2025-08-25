@@ -883,8 +883,6 @@ export class ArrayPromise<T>
 	}
 }
 
-const PROMISE_COLLECTION = 'PromiseCollection';
-
 /**
  * A Promise collection exposes useful methods for handling a collection of promises and their results.
  */

@@ -451,7 +451,6 @@ class ArrayPromise extends TSDNPromise {
     }
 }
 exports.ArrayPromise = ArrayPromise;
-const PROMISE_COLLECTION = 'PromiseCollection';
 class PromiseCollection extends disposable_1.DisposableBase {
     constructor(source) {
         super();

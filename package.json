@@ -1,6 +1,6 @@
 {
   "name": "@tsdotnet/promises",
-  "version": "2.0.9",
+  "version": "2.0.10",
   "description": "An extended A+ promise library with lazy and synchronous promises. ",
   "author": "electricessence",
   "license": "MIT",

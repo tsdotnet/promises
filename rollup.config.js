@@ -1,81 +1,36 @@
 import { defineConfig } from 'rollup';
 import typescript from '@rollup/plugin-typescript';
-import { readFileSync } from 'node:fs';
+import path from 'node:path';
 
-const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url)));
+// Explicit public entrypoints (subpaths)
+const entries = {
+  index: 'src/index.ts',
+  Promise: 'src/Promise.ts',
+  LazyPromise: 'src/LazyPromise.ts'
+};
 
-export default defineConfig([
-  // Main index export
-  {
-    input: 'src/index.ts',
-    output: {
-      file: 'dist/esm/index.js',
-      format: 'es',
-      sourcemap: true
-    },
-    external: [
-      /^node:/,
-      ...Object.keys(pkg.dependencies || {}),
-      ...Object.keys(pkg.peerDependencies || {})
-    ],
-    plugins: [
-      typescript({
-        tsconfig: './tsconfig.esm.json',
+function external(id) {
+  // keep deps external (don’t inline)
+  return !id.startsWith('.') && !path.isAbsolute(id);
+}
+
+export default defineConfig({
+  input: entries,
+  external,
+  plugins: [
+    typescript({
+      tsconfig: './tsconfig.esm.json',
         declaration: false,
-        declarationMap: false,
-        sourceMap: true,
-        removeComments: true
-      })
-    ]
-  },
-  // Promise subpath export
-  {
-    input: 'src/Promise.ts',
-    output: {
-      file: 'dist/esm/Promise.js',
-      format: 'es',
-      sourcemap: true
-    },
-    external: [
-      /^node:/,
-      ...Object.keys(pkg.dependencies || {}),
-      ...Object.keys(pkg.peerDependencies || {})
-    ],
-    plugins: [
-      typescript({
-        tsconfig: './tsconfig.esm.json',
-        declaration: false,
-        declarationMap: false,
-        sourceMap: true,
-        removeComments: true
-      })
-    ]
-  },
-  // LazyPromise subpath export
-  {
-    input: 'src/LazyPromise.ts',
-    output: {
-      file: 'dist/esm/LazyPromise.js',
-      format: 'es',
-      sourcemap: true
-    },
-    external: [
-      /^node:/,
-      ...Object.keys(pkg.dependencies || {}),
-      ...Object.keys(pkg.peerDependencies || {})
-    ],
-    plugins: [
-      typescript({
-        tsconfig: './tsconfig.esm.json',
-        declaration: false,
-        declarationMap: false,
-        sourceMap: true,
-        removeComments: true
-      })
-    ]
+      declarationMap: false,
+      sourceMap: true
+    })
+  ],
+  output: {
+    dir: 'dist/esm',
+    format: 'esm',
+    sourcemap: true,
+    preserveModules: true,
+    preserveModulesRoot: 'src',
+    entryFileNames: '[name].js'
   }
-]);
-
-
-
-
+});

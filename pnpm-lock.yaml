@@ -19,6 +19,8 @@ overrides:
   get-func-name@<2.0.1: '>=2.0.1'
   '@babel/traverse@<7.23.2': '>=7.23.2'
   braces@<3.0.3: '>=3.0.3'
+  diff@>=6.0.0 <8.0.3: '>=8.0.3'
+  '@isaacs/brace-expansion@<=5.0.0': '>=5.0.1'
 
 importers:
 
@@ -341,8 +343,8 @@ packages:
     resolution: {integrity: sha512-yzMTt9lEb8Gv7zRioUilSglI0c0smZ9k5D65677DLWLtWJaXIS3CqcGyUFByYKlnUj6TkjLVs54fBl6+TiGQDQ==}
     engines: {node: 20 || >=22}
 
-  '@isaacs/brace-expansion@5.0.0':
-    resolution: {integrity: sha512-ZT55BDLV0yv0RBm2czMiZ+SqCGO7AvmOM3G/w2xhVPH+te0aKgFjmBvGlL1dH+ql2tgGO3MVrbb3jCKyvpgnxA==}
+  '@isaacs/brace-expansion@5.0.1':
+    resolution: {integrity: sha512-WMz71T1JS624nWj2n2fnYAuPovhv7EUhk69R6i9dsVyzxt5eM3bjwvgk9L+APE1TRscGysAVMANkB0jh0LQZrQ==}
     engines: {node: 20 || >=22}
 
   '@isaacs/cliui@8.0.2':
@@ -829,8 +831,8 @@ packages:
   deep-is@0.1.4:
     resolution: {integrity: sha512-oIPzksmTg4/MriiaYGO+okXDT7ztn/w3Eptv/+gSIdMdKsJo0u4CfYNFJPy+4SKMuCqGw2wxnA+URMg3t8a/bQ==}
 
-  diff@7.0.0:
-    resolution: {integrity: sha512-PJWHUb1RFevKCwaFA9RlG5tCd+FO5iRh9A8HEtkmBH2Li03iJriB6m6JIN4rGz3K3JLawI7/veA1xzRKP6ISBw==}
+  diff@8.0.3:
+    resolution: {integrity: sha512-qejHi7bcSD4hQAZE0tNAawRK1ZtafHDmMTMkrrIGgSLl7hTnQHmKCeB45xAcbfTqK2zowkM3j3bHt/4b/ARbYQ==}
     engines: {node: '>=0.3.1'}
 
   eastasianwidth@0.2.0:
@@ -1768,7 +1770,7 @@ snapshots:
 
   '@isaacs/balanced-match@4.0.1': {}
 
-  '@isaacs/brace-expansion@5.0.0':
+  '@isaacs/brace-expansion@5.0.1':
     dependencies:
       '@isaacs/balanced-match': 4.0.1
 
@@ -2320,7 +2322,7 @@ snapshots:
 
   deep-is@0.1.4: {}
 
-  diff@7.0.0: {}
+  diff@8.0.3: {}
 
   eastasianwidth@0.2.0: {}
 
@@ -2688,7 +2690,7 @@ snapshots:
 
   minimatch@10.1.1:
     dependencies:
-      '@isaacs/brace-expansion': 5.0.0
+      '@isaacs/brace-expansion': 5.0.1
 
   minimatch@3.1.2:
     dependencies:
@@ -2705,7 +2707,7 @@ snapshots:
       browser-stdout: 1.3.1
       chokidar: 4.0.3
       debug: 4.4.3(supports-color@8.1.1)
-      diff: 7.0.0
+      diff: 8.0.3
       escape-string-regexp: 4.0.0
       find-up: 5.0.0
       glob: 10.5.0

@@ -3,8 +3,8 @@ import {ObjectDisposedException} from '@tsdotnet/disposable';
 import Stopwatch from '@tsdotnet/stopwatch';
 import {defer} from '@tsdotnet/threading';
 import { describe, it, expect, afterEach } from 'vitest';
-import LazyPromise from '../src/LazyPromise';
-import TSDNPromise, {Fulfilled, PromiseBase, PromiseCollection} from '../src/Promise';
+import LazyPromise from '../src/LazyPromise.js';
+import TSDNPromise, {Fulfilled, PromiseBase, PromiseCollection} from '../src/Promise.js';
 
 const REASON = 'this is not an error, but it might show up in the console';
 const BREAK = 'break', NO = 'NO!';

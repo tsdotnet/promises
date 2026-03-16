@@ -2,7 +2,7 @@
  * @author electricessence / https://github.com/electricessence/
  * Licensing: MIT
  */
-import { PromiseBase, TSDNPromise } from './Promise';
+import { PromiseBase, TSDNPromise } from './Promise.js';
 export default class LazyPromise<T> extends TSDNPromise<T> {
     private _resolver;
     constructor(_resolver: TSDNPromise.Executor<T>);

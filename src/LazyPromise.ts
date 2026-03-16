@@ -7,7 +7,7 @@ import type {Closure} from '@tsdotnet/common-interfaces';
 import {ArgumentNullException} from '@tsdotnet/exceptions';
 import type {Cancellable} from '@tsdotnet/threading';
 import {defer} from '@tsdotnet/threading';
-import {PromiseBase, TSDNPromise} from './Promise';
+import {PromiseBase, TSDNPromise} from './Promise.js';
 
 const VOID0: any = void 0;
 
@@ -130,7 +130,7 @@ export default class LazyPromise<T>
 		};
 
 		{
-			let detector = () => {
+			const detector = () => {
 				if(finalize) // We may already be wrapped up so never mind!
 					timeout = defer(finalize, milliseconds);
 			};
@@ -139,8 +139,6 @@ export default class LazyPromise<T>
 			// This simply waits for resolution to happen.
 			// Is effectively the timer by when resolution has occurred.
 			super.doneNow(detector, detector);
-			//noinspection JSUnusedAssignment
-			detector = null as any;
 		}
 
 		return new LazyPromise<T>(

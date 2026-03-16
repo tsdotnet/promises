@@ -1,6 +1,6 @@
 import { ArgumentNullException } from '@tsdotnet/exceptions';
 import { defer } from '@tsdotnet/threading';
-import { TSDNPromise } from './Promise.js';
+import { Promise as TSDNPromise } from './Promise.js';
 
 /*!
  * @author electricessence / https://github.com/electricessence/
@@ -67,7 +67,6 @@ class LazyPromise extends TSDNPromise {
                     timeout = defer(finalize, milliseconds);
             };
             super.doneNow(detector, detector);
-            detector = null;
         }
         return new LazyPromise((resolve, reject) => {
             if (this.isPending) {

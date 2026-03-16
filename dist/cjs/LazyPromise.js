@@ -6,9 +6,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const exceptions_1 = require("@tsdotnet/exceptions");
 const threading_1 = require("@tsdotnet/threading");
-const Promise_1 = require("./Promise");
+const Promise_js_1 = require("./Promise.js");
 const VOID0 = void 0;
-class LazyPromise extends Promise_1.TSDNPromise {
+class LazyPromise extends Promise_js_1.TSDNPromise {
     constructor(_resolver) {
         super();
         this._resolver = _resolver;
@@ -67,7 +67,6 @@ class LazyPromise extends Promise_1.TSDNPromise {
                     timeout = (0, threading_1.defer)(finalize, milliseconds);
             };
             super.doneNow(detector, detector);
-            detector = null;
         }
         return new LazyPromise((resolve, reject) => {
             if (this.isPending) {

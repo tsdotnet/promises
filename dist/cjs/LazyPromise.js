@@ -62,7 +62,7 @@ class LazyPromise extends Promise_js_1.TSDNPromise {
             finalize = VOID0;
         };
         {
-            let detector = () => {
+            const detector = () => {
                 if (finalize)
                     timeout = (0, threading_1.defer)(finalize, milliseconds);
             };

@@ -62,7 +62,7 @@ class LazyPromise extends TSDNPromise {
             finalize = VOID0;
         };
         {
-            let detector = () => {
+            const detector = () => {
                 if (finalize)
                     timeout = defer(finalize, milliseconds);
             };

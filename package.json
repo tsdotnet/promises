@@ -77,6 +77,16 @@
     "./package.json": "./package.json"
   },
   "types": "./dist/types/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "Promise": [
+        "dist/cjs/Promise.d.ts"
+      ],
+      "LazyPromise": [
+        "dist/cjs/LazyPromise.d.ts"
+      ]
+    }
+  },
   "keywords": [
     "promise",
     "A+",

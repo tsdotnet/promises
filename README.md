@@ -1,4 +1,4 @@
-![@tsdotnet/promises: Promises, your way. Synchronous-capable and lazy options.](https://cdn.jsdelivr.net/gh/tsdotnet/promises@master/assets/banner.svg)
+<a href="https://tsdotnet.github.io/promises/"><img src="https://cdn.jsdelivr.net/gh/tsdotnet/promises@master/assets/banner.svg" alt="@tsdotnet/promises: Promises, your way. Synchronous-capable and lazy options."></a>
 
 [![npm version](https://img.shields.io/npm/v/@tsdotnet/promises.svg?style=flat-square)](https://www.npmjs.com/package/@tsdotnet/promises)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://github.com/tsdotnet/promises/blob/master/LICENSE)

@@ -10,8 +10,8 @@ export type Resolver = Selector<TSDNPromise.Resolution<any>, any> | null | undef
 export declare class PromiseState<T> extends DisposableBase {
     protected _state: TSDNPromise.State;
     protected _result?: T | undefined;
-    protected _error?: unknown | undefined;
-    constructor(_state: TSDNPromise.State, _result?: T | undefined, _error?: unknown | undefined);
+    protected _error?: unknown;
+    constructor(_state: TSDNPromise.State, _result?: T | undefined, _error?: unknown);
     get state(): TSDNPromise.State;
     get isPending(): boolean;
     get isSettled(): boolean;
